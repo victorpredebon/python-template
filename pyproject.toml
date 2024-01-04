@@ -4,19 +4,16 @@ version = "0.1.0"
 description = ""
 authors = ["Victor Predebon <victor.predebon@atarb2b.com>"]
 readme = "README.md"
-packages = [{include = "python_template"}]
+packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.2.1"
-pre-commit = "^3.1.0"
-pylint = "^2.16.2"
-black = "^23.1.0"
-isort = "^5.12.0"
-commitizen = "^2.42.0"
+pytest = "^7.4.4"
+pre-commit = "^3.6.0"
+faker = "^22.0.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -25,7 +22,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q"
-testpaths = [
-    "tests",
-    "integration",
-]
+testpaths = ["tests", "integration"]
