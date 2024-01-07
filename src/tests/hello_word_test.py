@@ -1,4 +1,4 @@
-from app import get_hello_word
+from app.hello_word import get_hello_word
 
 
 def test_hello_word(faker):

@@ -1,7 +1,10 @@
 export PYTHONPATH := $(PWD)/src
 
 tests:
-	pytest src
+	pytest src -vv
+
+tests-coverage:
+	pytest --cov=src src/ -vv --cov-report=html
 
 lint:
 	pre-commit run --all-files
