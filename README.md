@@ -7,7 +7,6 @@ Template for Python projects, with some development tools
 
 - pytest
 - pre-commit
-- pylint
 - black
 - isort
 - commitizen
@@ -31,7 +30,20 @@ install dependencies
 Initialize the pre commit hooks
 
 ```bash
-  poetry run pre-commit install --hook-type commit-msg --hook-type pre-push
+  make pre-commit-install
+```
+
+lint
+
+```bash
+  make lint
+```
+
+tests
+
+```bash
+  make tests
+  make tests-coverage
 ```
 
 ## Authors

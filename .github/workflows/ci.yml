@@ -1,0 +1,31 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    types: [ edited, opened, reopened, synchronize ]
+
+env:
+  PYTHON_VERSION: '3.11.3'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Setup Actions
+        uses: actions/checkout@v4
+      - name: Lint
+        uses: ./.github/actions/lint
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+  tests:
+    name: Tests
+    runs-on: ubuntu-22.04
+    needs: lint
+    steps:
+      - name: Setup Actions
+        uses: actions/checkout@v4
+      - name: Test
+        uses: ./.github/actions/tests
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
