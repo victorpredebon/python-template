@@ -10,7 +10,7 @@ lint:
 	pre-commit run --all-files
 
 pre-commit-install:
-	pre-commit install
+	pre-commit install --install-hooks
 
 pre-commit-update:
 	pre-commit autoupdate
