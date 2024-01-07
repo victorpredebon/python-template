@@ -5,13 +5,12 @@ on:
     types: [ edited, opened, reopened, synchronize ]
 
 env:
-  PYTHON_VERSION: 3.11.3
-  UBUNTU_VERSION: ubuntu-22.04
+  PYTHON_VERSION: '3.11.3'
 
 jobs:
   lint:
     name: Lint
-    runs-on: ${{ env.UBUNTU_VERSION }}
+    runs-on: ubuntu-22.04
     steps:
       - name: Setup Actions
         uses: actions/checkout@v4
@@ -21,7 +20,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
   tests:
     name: Tests
-    runs-on: ${{ env.UBUNTU_VERSION }}
+    runs-on: ubuntu-22.04
     needs: lint
     steps:
       - name: Setup Actions
