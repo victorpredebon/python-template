@@ -1,14 +1,14 @@
 default_language_version:
-    python: python3.11
+  python: python3.12
 default_install_hook_types: [pre-commit, pre-push, commit-msg]
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v3.0.0
+    rev: v3.6.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: check-added-large-files
       - id: check-json
@@ -20,34 +20,29 @@ repos:
       - id: trailing-whitespace
       - id: no-commit-to-branch
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.0
+    rev: v3.19.0
     hooks:
       - id: pyupgrade
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.11
+    rev: v0.8.0
     hooks:
       - id: ruff
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
-    hooks:
-      - id: black
+        args:
+          - --fix
+          - --diff
+      - id: ruff-format
+        args:
+          - --diff
   - repo: https://github.com/PyCQA/isort
     rev: 5.13.2
     hooks:
       - id: isort
-  - repo: https://github.com/PyCQA/flake8
-    rev: 7.0.0
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v1.13.0"
     hooks:
-      - id: flake8
+      - id: mypy
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.27.3
+    rev: 0.29.4
     hooks:
       - id: check-github-actions
       - id: check-github-workflows
-  - repo: local
-    hooks:
-      - id: pytest
-        name: pytest
-        language: system
-        entry: make tests
-        stages: [pre-push]
