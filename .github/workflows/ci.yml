@@ -2,10 +2,10 @@ name: Continuous Integration
 
 on:
   pull_request:
-    types: [ edited, opened, reopened, synchronize ]
+    types: [edited, opened, reopened, synchronize]
 
 env:
-  PYTHON_VERSION: '3.11.3'
+  PYTHON_VERSION: "3.12.0"
 
 jobs:
   lint:

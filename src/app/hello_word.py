@@ -1,2 +1,2 @@
-def get_hello_word(name):
-    return f"Hello World {name}"
+def get_hello_word(name: str):
+    return f'Hello World {name}'

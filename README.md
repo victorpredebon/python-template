@@ -10,6 +10,9 @@ Template for Python projects, with some development tools
 - black
 - isort
 - commitizen
+- poetry
+- ruff
+- mypy
 
 ## Setup
 

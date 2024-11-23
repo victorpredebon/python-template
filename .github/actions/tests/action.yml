@@ -1,9 +1,9 @@
-name: 'Tests'
-description: 'Tests Project'
+name: "Tests"
+description: "Tests Project"
 
 inputs:
   python-version:
-    description: 'Python version to use'
+    description: "Python version to use"
     required: true
 
 runs:
@@ -14,7 +14,7 @@ runs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
-        cache: 'pip'
+        cache: "pip"
     - name: Install Dependencies
       shell: bash
       run: |
