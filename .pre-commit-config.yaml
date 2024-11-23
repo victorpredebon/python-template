@@ -11,6 +11,8 @@ repos:
     rev: v5.0.0
     hooks:
       - id: check-added-large-files
+      - id: pretty-format-json
+        args: [--autofix, --no-sort-keys]
       - id: check-json
       - id: check-toml
       - id: check-yaml
