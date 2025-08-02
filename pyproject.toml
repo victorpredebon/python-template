@@ -1,0 +1,89 @@
+[project]
+name = "python-template"
+version = "0.1.0"
+description = ""
+authors = [{ name = "Victor Predebon", email = "predebonvictor@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+
+[tool.poetry.group.development.dependencies]
+ruff = "^0.12.7"
+pre-commit = "^4.2.0"
+mypy = "^1.17.1"
+pytest = "^8.4.1"
+pytest-asyncio = "^1.1.0"
+pytest-cov = "^6.2.1"
+
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+target-version = "py313"
+fix = true
+
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**.py" = ["ANN201", "S101"]
+
+
+[tool.ruff.lint]
+select = [
+    "FAST",
+    "ANN",
+    "ASYNC",
+    "S",
+    "FBT",
+    "B",
+    "A",
+    "C4",
+    "DTZ",
+    "ISC",
+    "LOG",
+    "G",
+    "PIE",
+    "T20",
+    "PYI",
+    "PT",
+    "RET",
+    "SIM",
+    "TID",
+    "ARG",
+    "PTH",
+    "I",
+    "C90",
+    "W",
+    "F",
+    "RUF",
+    "TRY",
+]
+ignore = []
+fixable = ["ALL"]
+
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 88
+
+
+[tool.mypy]
+mypy_path = "src"
+
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+asyncio_default_fixture_loop_scope = "function"
+
+
+[tool.poetry]
+package-mode = false
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
