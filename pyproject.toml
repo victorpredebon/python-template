@@ -79,6 +79,9 @@ mypy_path = "src"
 pythonpath = "src"
 asyncio_default_fixture_loop_scope = "function"
 
+[tool.coverage.run]
+branch = true
+omit = ["**/tests/**"]
 
 [tool.poetry]
 package-mode = false
