@@ -22,6 +22,7 @@ pre-commit-update: ## Update pre-commit hooks
 	poetry run pre-commit autoupdate
 
 clean: ## Clean build artifacts and caches
-	rm -rf .mypy_cache .pytest_cache __pycache__ src/__pycache__ src/**/__pycache__ \
-		src/*/*.egg-info dist build *.egg-info .ruff_cache .coverage \
-		htmlcov
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	find . -type f -name "*.pyo" -delete
+	rm -rf .pytest_cache .mypy_cache build dist *.egg-info .ruff_cache htmlcov .coverage
