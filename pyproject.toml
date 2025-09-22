@@ -24,42 +24,23 @@ target-version = "py313"
 fix = true
 
 
-[tool.ruff.lint.per-file-ignores]
-"**/tests/**.py" = ["ANN201", "S101"]
-
-
 [tool.ruff.lint]
-select = [
-  "FAST",
-  "ANN",
-  "ASYNC",
-  "S",
-  "FBT",
-  "B",
-  "A",
-  "C4",
-  "DTZ",
-  "ISC",
-  "LOG",
-  "G",
-  "PIE",
-  "T20",
-  "PYI",
-  "PT",
-  "RET",
-  "SIM",
-  "TID",
-  "ARG",
-  "PTH",
-  "I",
-  "C90",
-  "W",
-  "F",
-  "RUF",
-  "TRY",
+select = ["ALL"]
+ignore = [
+  "D",   # pydocstyle (D)
+  "COM", # flake8-commas (COM)
+  "Q",   # flake8-quotes (Q)
 ]
-ignore = []
 fixable = ["ALL"]
+
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**.py" = [
+  "ANN",     # flake8-annotations (ANN)
+  "PLR2004", # Magic value used in comparison
+  "S101",    # Use of `assert` detected
+  "INP001",  # File is part of an implicit namespace package
+]
 
 
 [tool.ruff.format]
@@ -69,6 +50,15 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = true
 docstring-code-line-length = 88
+
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+lines-after-imports = 2
+
+
+[tool.ruff.lint.flake8-type-checking]
+strict = true
 
 
 [tool.mypy]

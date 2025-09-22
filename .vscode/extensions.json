@@ -1,7 +1,6 @@
 {
   "recommendations": [
     "editorconfig.editorconfig",
-    "ms-python.isort",
     "ms-vscode.makefile-tools",
     "ms-python.mypy-type-checker",
     "ms-python.python",
