@@ -10,7 +10,7 @@ dependencies = []
 
 [tool.poetry.group.development.dependencies]
 ruff = "^0.14.4"
-pre-commit = "^4.3.0"
+pre-commit = "^4.4.0"
 mypy = "^1.18.2"
 pytest = "^8.4.2"
 pytest-asyncio = "^1.2.0"
