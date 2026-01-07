@@ -9,7 +9,7 @@ dependencies = []
 
 
 [tool.poetry.group.development.dependencies]
-ruff = "^0.14.8"
+ruff = "^0.14.10"
 pre-commit = "^4.5.0"
 mypy = "^1.19.1"
 pytest = "^9.0.2"
