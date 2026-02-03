@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = [{ name = "Victor Predebon", email = "predebonvictor@gmail.com" }]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = []
 
 
@@ -20,7 +20,7 @@ pytest-cov = "^7.0.0"
 [tool.ruff]
 line-length = 88
 indent-width = 4
-target-version = "py313"
+target-version = "py314"
 fix = true
 
 
