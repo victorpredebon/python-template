@@ -15,6 +15,12 @@ mypy = "^1.19.1"
 pytest = "^9.0.2"
 pytest-asyncio = "^1.2.0"
 pytest-cov = "^7.0.0"
+pyupgrade = { version = "^3.21.2", python = ">=3.14,<4.0" }
+commitizen = { version = ">=4.13.8,<5.0", python = ">=3.14,<4.0" }
+pip-audit = { version = "^2.10.0", python = ">=3.14,<4.0" }
+deptry = { version = "^0.24.0", python = ">=3.14,<4.0" }
+pytest-xdist = { version = "^3.8.0", python = ">=3.14,<4.0" }
+python-semantic-release = { version = ">=10.5.3,<11.0", python = ">=3.14,<4.0" }
 
 
 [tool.ruff]
@@ -61,16 +67,28 @@ lines-after-imports = 2
 strict = true
 
 
+[tool.commitizen]
+version_scheme = "semver"
+tag_format = "v$version"
+
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+branch = "main"
+changelog_file = "CHANGELOG.md"
+
+
 [tool.mypy]
-mypy_path = "src"
+mypy_path = "."
 
 
 [tool.pytest.ini_options]
-pythonpath = "src"
+pythonpath = ["."]
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 branch = true
+source = ["calculator"]
 omit = ["**/tests/**"]
 
 [tool.poetry]

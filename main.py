@@ -1,6 +1,6 @@
 from logging import basicConfig, getLogger
 
-from calc import sum_numbers
+from calculator import sum_numbers
 
 
 logger = getLogger(__name__)

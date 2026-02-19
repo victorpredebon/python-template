@@ -1,14 +1,9 @@
 repos:
-  - repo: https://github.com/asottile/pyupgrade
-    rev: v3.20.0
-    hooks:
-      - id: pyupgrade
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
-      - id: double-quote-string-fixer
       - id: pretty-format-json
         args: [--autofix]
       - id: check-toml
@@ -19,20 +14,40 @@ repos:
       - id: check-case-conflict
       - id: name-tests-test
         args: [--pytest-test-first]
-      - id: check-illegal-windows-names
-      - id: check-case-conflict
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.13.1
+  - repo: local
     hooks:
+      - id: pyupgrade
+        name: pyupgrade
+        entry: poetry run pyupgrade --py314-plus
+        language: system
+        types: [python]
       - id: ruff
-        args: ["--fix"]
+        name: ruff
+        entry: poetry run ruff check --fix
+        language: system
+        types: [python]
       - id: ruff-format
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.18.2
-    hooks:
+        name: ruff-format
+        entry: poetry run ruff format
+        language: system
+        types: [python]
       - id: mypy
-        args: ["--config-file=pyproject.toml", "--explicit-package-bases"]
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.9.1
-    hooks:
+        name: mypy
+        entry: poetry run mypy --explicit-package-bases
+        language: system
+        types: [python]
       - id: commitizen
+        name: commitizen
+        entry: poetry run cz check --commit-msg-file
+        language: system
+        stages: [commit-msg]
+      - id: pip-audit
+        name: pip-audit
+        entry: poetry run pip-audit
+        language: system
+        pass_filenames: false
+      - id: deptry
+        name: deptry
+        entry: poetry run deptry .
+        language: system
+        pass_filenames: false

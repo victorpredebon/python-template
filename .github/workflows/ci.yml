@@ -1,4 +1,5 @@
-name: CI
+name: CI/CD
+
 on:
   push:
     branches: [main]
@@ -6,31 +7,76 @@ on:
     branches: [main]
 
 jobs:
-  ci:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.14"]
-        poetry-version: ["latest"]
-        os: [ubuntu-22.04]
-    runs-on: ${{ matrix.os }}
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Run image
-        uses: abatilo/actions-poetry@v4
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
         with:
-          poetry-version: ${{ matrix.poetry-version }}
-      - uses: actions/cache@v5
-        name: Define a cache for the virtual environment based on the dependencies lock file
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Cache virtualenv
+        uses: actions/cache@v4
         with:
-          path: ./.venv
+          path: .venv
           key: venv-${{ hashFiles('poetry.lock') }}
-      - name: Install the project dependencies
-        run: poetry install
-      - name: Run pre-commit
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Lint, format and type-check
         run: poetry run pre-commit run --all-files
-      - name: Run the automated tests with coverage check
-        run: poetry run pytest -v --cov=./ --cov-report=term --cov-fail-under=90
+
+      - name: Run tests with coverage
+        run: make coverage
+
+      - name: Audit dependencies
+        run: make audit
+        continue-on-error: true
+
+      - name: Check dependency hygiene
+        run: poetry run deptry .
+
+  release:
+    name: Release
+    needs: quality
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Cache virtualenv
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: poetry run semantic-release version

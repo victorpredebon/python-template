@@ -1,4 +1,4 @@
-from calc import sum_numbers
+from calculator.calc import sum_numbers
 
 
 def test_sum_numbers():

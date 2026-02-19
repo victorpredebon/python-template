@@ -1,185 +1,212 @@
-# Python Template
+<div align="center">
 
-![Python Version](https://img.shields.io/badge/python-3.13+-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+# 🐍 Python Template
+
+**A modern, opinionated Python boilerplate — batteries included.**
+
+Scaffold production-ready Python projects in seconds. Clone, run `make install`, and start shipping — linting, formatting, type checking, testing, and commit conventions already wired up.
+
+[![Python Version](https://img.shields.io/badge/python-3.14+-blue.svg)](https://python.org)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Linting: Ruff](https://img.shields.io/badge/linting-ruff-yellow)](https://github.com/astral-sh/ruff)
 [![Formatting: Ruff](https://img.shields.io/badge/formatting-ruff-black)](https://github.com/astral-sh/ruff)
 [![Type Checking: MyPy](https://img.shields.io/badge/type%20checking-mypy-blue)](https://github.com/python/mypy)
-![GitHub Issues](https://img.shields.io/github/issues/victorpredebon/python-template)
-![Last Commit](https://img.shields.io/github/last-commit/victorpredebon/python-template)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://makeapullrequest.com)
 [![GitHub Stars](https://img.shields.io/github/stars/victorpredebon/python-template?style=social)](https://github.com/victorpredebon/python-template/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/victorpredebon/python-template?style=social)](https://github.com/victorpredebon/python-template/fork)
 
-A modern, opinionated Python project template for Python 3.13+, pre-configured with Poetry, Ruff, MyPy, Pytest, Coverage, and pre-commit hooks. Use it to bootstrap new repositories with consistent tooling, clean structure, and CI-ready quality gates.
+</div>
 
-## Table of Contents
+---
 
-- [Features](#features)
-- [Why this template](#why-this-template)
-- [Quick Start](#quick-start)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Usage](#usage)
-- [Testing](#testing)
-- [Development](#development)
-- [Project Structure](#project-structure)
-- [Star History](#star-history)
-- [FAQ](#faq)
-- [License](#license)
-- [Author](#author)
-- [Contributing](#contributing)
+## ✨ Features
 
-## Features
+| Tool | Purpose |
+|------|---------|
+| 🐍 **Python 3.14+** | Latest stable Python with syntax auto-upgraded via `pyupgrade` |
+| 📦 **Poetry** | Reproducible builds with pinned lockfile and local `.venv` |
+| ⚡ **Ruff** | Blazing-fast linter and formatter — replaces `flake8`, `isort`, and `black` in one tool |
+| 🔍 **MyPy** | Strict static type checking and type safety enforcement |
+| 🧪 **Pytest + pytest-cov** | Parallel test suite with branch coverage and an 80% minimum coverage gate |
+| 🔒 **pre-commit** | Code quality hooks sourced from the project's own virtualenv — zero version drift |
+| 📐 **Commitizen** | Enforces [Conventional Commits](https://www.conventionalcommits.org) on every commit message |
+| 🛡️ **pip-audit** | Scans `poetry.lock` for dependencies with known CVEs |
+| 🧹 **deptry** | Detects unused, missing, and transitive dependencies in `pyproject.toml` |
+| 🚀 **python-semantic-release** | Automates versioning and changelog generation from Conventional Commits |
 
-- Configured for Python 3.13+
-- Dependency management with Poetry
-- Code formatting and linting with Ruff
-- Type checking with MyPy
-- Automated testing with Pytest
-- Pre-commit hooks for code quality assurance
-- Organized project structure ready to scale
+---
 
-## Why this template
+## 🚀 Why this template?
 
-- Strong defaults for modern Python (3.13) and type safety.
-- One-command setup via Makefile and Poetry.
-- Fast, strict linting with Ruff and static checks with MyPy.
-- Testing and coverage pre-wired with Pytest and pytest-cov.
-- Pre-commit hooks to enforce quality before code lands.
-- Minimal, scalable structure you can adapt to any app or library.
+- **Instant scaffold** — `make install` is all you need. No manual wiring, no hunting for config examples.
+- **Reproducible builds** — Poetry lockfile + local virtualenv ensure every developer and CI run uses the exact same dependency versions.
+- **Version-locked tooling** — pre-commit hooks run via `poetry run`, so the linter, formatter, and type checker in hooks always match `poetry.lock`. No drift, ever.
+- **Quality gates enforced** — Ruff, MyPy, and an 80% coverage threshold block bad code before it hits the repo.
+- **Conventional Commits baked in** — Commitizen validates every commit message, keeping changelogs and versioning automatable from day one.
+- **Scalable project structure** — clean Python package layout (not a flat script pile) that grows with your codebase.
+- **Zero legacy config** — no `.flake8`, no `setup.cfg`, no `tox.ini`. Everything lives in `pyproject.toml`.
+
+---
+
+## ⚡ Quick Start
+
+### Prerequisites
+
+- Python 3.14+
+- [Poetry](https://python-poetry.org/docs/#installation)
 
 ### Use this template
 
-There are a few ways to start a new repository from this template:
+**Option 1 — GitHub template repository:** Click **"Use this template"** at the top of the page to create a new repo with this scaffold instantly.
 
-1. Click “Use this template” on GitHub (if available) or fork the repository.
-2. Or create a new repo and pull from this one:
+**Option 2 — via Git:**
 
 ```bash
 git init my-new-project && cd my-new-project
 git remote add template https://github.com/victorpredebon/python-template.git
 git pull template main
 git remote remove template
-git branch -M main
 git commit --allow-empty -m "chore: bootstrap from python-template"
 ```
 
-## Quick Start
-
-### Prerequisites
-
-- Python 3.13 or higher
-- Poetry (dependency manager)
-
 ### Installation
-
-1. Clone this repository:
-
-```bash
-git clone https://github.com/victorpredebon/python-template.git
-cd python-template
-```
-
-2. Install dependencies:
 
 ```bash
 make install
 ```
 
-### Usage
-
-Activate the virtual environment:
+### Run
 
 ```bash
-poetry shell
+python main.py
 ```
 
-Run the example:
+---
+
+## 🧪 Testing
 
 ```bash
-python -m src.main
+make tests       # run tests
+make coverage    # run tests + coverage report (fails below 80%)
 ```
 
-## Testing
+---
 
-Run tests with:
+## 🛠️ Development
+
+### Makefile commands
 
 ```bash
-make tests
+make help                # list all commands
+make install             # install dependencies
+make tests               # run tests in parallel
+make coverage            # run tests with coverage (fails below 80%)
+make audit               # scan dependencies for known CVEs
+make release             # bump version, update CHANGELOG and tag locally (no push)
+make pre-commit          # run all pre-commit hooks
+make setup-pre-commit    # install git hooks (commit-msg + pre-push)
+make pre-commit-update   # update pre-commit hooks
+make clean               # clean caches and build artifacts
 ```
 
-For coverage report:
+### Pre-commit hooks
+
+All hooks run from the project's virtualenv via `poetry run` — no separately installed binaries, no version mismatch between your editor, CI, and git hooks:
+
+| Hook | Stage | What it does |
+|------|-------|-------------|
+| `pyupgrade` | pre-push | Modernizes syntax to Python 3.14+ idioms |
+| `ruff` | pre-push | Lints and auto-fixes — covers flake8, isort, and more |
+| `ruff-format` | pre-push | Opinionated code formatting |
+| `mypy` | pre-push | Static type checking for type safety |
+| `commitizen` | commit-msg | Enforces Conventional Commits spec |
 
 ```bash
-make coverage
+make setup-pre-commit   # install hooks
 ```
 
-## Development
+---
 
-### Useful Commands
+## ⚙️ CI/CD
 
-The project includes a Makefile with useful commands:
+The included GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and pull request to `main`:
 
-```bash
-make help           # Display help message
-make install        # Install dependencies
-make tests          # Run tests
-make coverage       # Run tests with coverage
-make pre-commit     # Run pre-commit on all files
-make setup-pre-commit # Setup pre-commit hooks
-make pre-commit-update # Update pre-commit hooks
-make clean          # Clean build artifacts and caches
-```
+| Job | Trigger | What it does |
+|-----|---------|-------------|
+| **Quality** | push + PR | Linting, formatting, type-check, tests, `pip-audit`, `deptry` |
+| **Release** | push to `main` only | Bumps version, updates `CHANGELOG.md`, creates tag and GitHub release |
 
-### Pre-commit Hooks
+The release job only runs after **Quality** passes, and requires a `GH_TOKEN` secret (automatically available in GitHub Actions via `secrets.GITHUB_TOKEN`).
 
-The project uses pre-commit hooks to ensure code quality before each commit:
+---
 
-```bash
-make setup-pre-commit  # Install hooks
-```
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 python-template/
-├── src/             # Source code
-│   ├── main.py      # Entry point
-│   └── calc.py      # Example modules
-├── pyproject.toml   # Project configuration
-├── poetry.lock      # Pinned dependencies
-├── .pre-commit-config.yaml  # Pre-commit configuration
-└── Makefile         # Utility commands
+├── calculator/               # Source package
+│   ├── __init__.py           # Public API exports
+│   └── calc.py               # Example module
+├── tests/                    # Test suite (outside the package)
+│   └── test_calc.py
+├── main.py                   # Entry point
+├── pyproject.toml            # Project config (deps, ruff, mypy, pytest, coverage)
+├── poetry.toml               # Poetry settings (virtualenv created inside project)
+├── poetry.lock               # Pinned dependencies
+├── .pre-commit-config.yaml   # Pre-commit hooks
+└── Makefile                  # Dev commands
 ```
 
-## Star History
+---
+
+## ⭐ Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=victorpredebon/python-template&type=Timeline)](https://star-history.com/#victorpredebon/python-template&Timeline)
 
-## FAQ
+---
 
-- How do I use this without Poetry?
-  - You can install dependencies with pip, but you will need to adapt commands. Example: `pip install -r requirements.txt` (not provided by default). Poetry is recommended for reproducibility.
-- Why Python 3.13?
-  - Targets the latest Python features and performance. You can lower the version by editing `requires-python` and `target-version` in `pyproject.toml`.
-- How do I enable pre-commit hooks?
-  - Run `make setup-pre-commit`. This installs `pre-commit` hooks for `commit-msg` and `pre-push`.
+## ❓ FAQ
 
-## License
+**How do I use this without Poetry?**
+Install dependencies with pip and adapt commands manually. Poetry is strongly recommended for reproducible builds and lockfile management.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**Why Python 3.14?**
+Targets the latest stable Python for best performance and modern language features. To downgrade, edit `requires-python` and `target-version` in `pyproject.toml`.
 
-## Author
+**Can I use this as a cookiecutter alternative?**
+Yes. Use the GitHub template button to scaffold a new repo instantly, or pull via Git. There's no generator step — the structure is ready to rename and adapt.
 
-- **Victor Predebon** - [GitHub](https://github.com/victorpredebon)
+**What is `poetry.toml`?**
+It pins `virtualenvs.in-project = true`, so Poetry always creates `.venv/` inside the project root. This makes the environment easy to locate for editors, type checkers, and `poetry run`.
 
-## Contributing
+**Why do pre-commit hooks use `poetry run` instead of remote repos?**
+Remote repos pin their own tool versions independently of your project. Using `repo: local` with `poetry run` means every hook runs at the exact version in `poetry.lock` — the same binary your editor and CI use.
+
+**How do I enable pre-commit hooks?**
+Run `make setup-pre-commit`. This installs hooks for the `commit-msg` (Commitizen) and `pre-push` (Ruff, MyPy, etc.) stages.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🤝 Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
 
 1. Fork the project
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'feat: add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
+
+---
+
+<div align="center">
+
+Made with ❤️ by [Victor Predebon](https://github.com/victorpredebon)
+
+</div>
