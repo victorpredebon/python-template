@@ -1,5 +1,5 @@
 from calculator.calc import sum_numbers
 
 
-def test_sum_numbers():
+def test_sum_numbers() -> None:
     assert sum_numbers(1, 2) == 3

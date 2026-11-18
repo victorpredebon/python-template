@@ -80,6 +80,7 @@ changelog_file = "CHANGELOG.md"
 
 [tool.mypy]
 mypy_path = "."
+strict = true
 
 
 [tool.pytest.ini_options]
