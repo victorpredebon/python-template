@@ -6,10 +6,15 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     name: Code Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v7
@@ -49,6 +54,7 @@ jobs:
     name: Release
     needs: quality
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     permissions:
@@ -79,4 +85,4 @@ jobs:
       - name: Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: poetry run semantic-release version
+        run: poetry run semantic-release version --no-commit
