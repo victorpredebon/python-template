@@ -4,12 +4,12 @@ from calculator import sum_numbers
 
 
 logger = getLogger(__name__)
-basicConfig(level='INFO')
 
 
 def main() -> None:
+    basicConfig(level='INFO')
     logger.info('Hello from python-template!')
-    logger.info(sum_numbers(1, 2))
+    logger.info('Result: %s', sum_numbers(1, 2))
 
 
 if __name__ == '__main__':
