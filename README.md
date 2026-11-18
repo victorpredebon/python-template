@@ -134,9 +134,11 @@ The included GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every 
 | Job | Trigger | What it does |
 |-----|---------|-------------|
 | **Quality** | push + PR | Linting, formatting, type-check, tests, `pip-audit`, `deptry` |
-| **Release** | push to `main` only | Bumps version, updates `CHANGELOG.md`, creates tag and GitHub release |
+| **Release** | push to `main` only | Computes the next version, tags the merge commit and creates a GitHub release with generated notes |
 
 The release job only runs after **Quality** passes, and requires a `GH_TOKEN` secret (automatically available in GitHub Actions via `secrets.GITHUB_TOKEN`).
+
+Since `main` is protected (changes only via pull request), the job runs `semantic-release version --no-commit`: it pushes only the tag, so `project.version` in `pyproject.toml` and `CHANGELOG.md` are not updated in the repository. The git tag (`vX.Y.Z`) is the source of truth for the released version.
 
 ---
 
