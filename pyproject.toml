@@ -36,6 +36,7 @@ ignore = [
   "D",   # pydocstyle (D)
   "COM", # flake8-commas (COM)
   "Q",   # flake8-quotes (Q)
+  "CPY", # flake8-copyright (CPY)
 ]
 fixable = ["ALL"]
 
