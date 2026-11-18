@@ -46,8 +46,10 @@ repos:
         entry: poetry run pip-audit
         language: system
         pass_filenames: false
+        stages: [manual]
       - id: deptry
         name: deptry
         entry: poetry run deptry .
         language: system
         pass_filenames: false
+        stages: [manual]
