@@ -47,8 +47,8 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
-      issues: write       # read label events; remove the approval label on new gate changes
-      pull-requests: read # labels
+      issues: read         # label events
+      pull-requests: write # remove the approval label when a push changes gates again
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
