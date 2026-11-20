@@ -1,0 +1,20 @@
+id: test-must-assert
+valid:
+  - |
+    def test_sum() -> None:
+        assert sum_numbers(1, 2) == 3
+  - |
+    def test_raises() -> None:
+        with pytest.raises(ValueError):
+            parse('x')
+  - |
+    def helper() -> int:
+        return 1
+invalid:
+  - |
+    def test_runs() -> None:
+        main()
+  - |
+    @pytest.mark.parametrize('x', [1, 2])
+    def test_param(x: int) -> None:
+        sum_numbers(x, x)

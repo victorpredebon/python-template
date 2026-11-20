@@ -1,0 +1,13 @@
+id: logging-config-only-in-entrypoint
+language: python
+severity: error
+message: Configure logging only in the entry point (cli.py).
+note: Library code that configures logging overrides the application's choices.
+files: ["src/**"]
+ignores: ["src/**/cli.py"]
+rule:
+  any:
+    - pattern: basicConfig($$$)
+    - pattern: logging.basicConfig($$$)
+    - pattern: dictConfig($$$)
+    - pattern: logging.config.dictConfig($$$)

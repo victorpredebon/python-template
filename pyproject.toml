@@ -43,6 +43,10 @@ dev = [
   "zizmor>=1",
   "actionlint-py>=1.7",
   "mutmut>=3",
+  "diff-cover>=9",
+  "import-linter>=2",
+  "vulture>=2",
+  "ast-grep-cli>=0.39",
 ]
 # Packaging checks and SBOM: `poetry install --with build`
 build = ["twine>=6", "cyclonedx-bom>=7"]
@@ -123,6 +127,37 @@ known_first_party = ["calculator"]
 [tool.deptry.package_module_name_map]
 python-semantic-release = "semantic_release"
 cyclonedx-bom = "cyclonedx_py"
+
+
+# Architecture contracts: `lint-imports`. Add a contract when you add a layer.
+[tool.importlinter]
+root_package = "calculator"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "The CLI sits on top of the core logic, never the other way around"
+type = "layers"
+layers = ["calculator.cli", "calculator.calc"]
+
+[[tool.importlinter.contracts]]
+name = "Core logic is pure: no I/O, logging or process control"
+type = "forbidden"
+source_modules = ["calculator.calc"]
+forbidden_modules = ["logging", "os", "sys", "subprocess", "pathlib", "socket"]
+
+
+# Dead code: functions, classes and attributes nothing uses.
+[tool.vulture]
+paths = ["src", "tests", ".claude/hooks"]
+
+
+# Duplicated code (copy-paste, also within one file): jscpd, configured in .jscpd.json.
+
+
+# New or changed lines must be fully covered: `make diff-cover` (after `make coverage`).
+[tool.diff_cover]
+compare_branch = "origin/main"
+fail_under = 100
 
 
 [tool.mypy]

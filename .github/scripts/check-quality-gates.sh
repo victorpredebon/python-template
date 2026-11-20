@@ -13,7 +13,7 @@ LABEL="${OVERRIDE_LABEL:-allow-gate-change}"
 # Added Python lines that silence a check.
 code_pattern='#[[:space:]]*(noqa|type:[[:space:]]*ignore|pyright:[[:space:]]*ignore)|pragma:[[:space:]]*no[[:space:]]*cover|pytest[.](mark[.](skip|skipif|xfail)|skip[(]|xfail[(]|importorskip[(])|unittest[.]skip'
 # Added or removed configuration lines that tune a gate (incl. quoted rule codes).
-config_pattern='fail_under|ignore|strict|select|disable|stages|exclude|omit|severity|continue-on-error|"[A-Z]+[0-9]+"'
+config_pattern='fail_under|ignore|strict|select|disable|stages|exclude|omit|severity|continue-on-error|threshold|min[A-Z_]|layers|forbidden|"[A-Z]+[0-9]+"'
 
 # Prints "path: line" for diff lines whose content matches the pattern.
 scan() {
@@ -29,7 +29,9 @@ scan() {
 
 findings="$(
   scan "${code_pattern}" '+' '*.py'
-  scan "${config_pattern}" '+-' pyproject.toml .pre-commit-config.yaml .github/zizmor.yml .github/workflows .github/actions
+  scan "${config_pattern}" '+-' pyproject.toml .pre-commit-config.yaml .github/zizmor.yml .github/workflows .github/actions .jscpd.json sgconfig.yml rules
+  # Deleting a project rule or its tests silently drops a check.
+  git diff --diff-filter=D --name-only "${BASE_SHA}" "${HEAD_SHA}" -- rules rule-tests | sed 's/^/deleted: /'
 )"
 
 if [[ -z "${findings}" ]]; then

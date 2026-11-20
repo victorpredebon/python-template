@@ -1,0 +1,6 @@
+# ast-grep: project-specific code patterns that Ruff can't express.
+# `ast-grep scan` checks the code, `ast-grep test` checks the rules themselves.
+# Every rule in rules/ needs valid and invalid examples in rule-tests/.
+ruleDirs: [rules]
+testConfigs:
+  - testDir: rule-tests

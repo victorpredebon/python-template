@@ -1,4 +1,4 @@
-.PHONY: help install run lint format typecheck tests coverage audit deps check build mutation pre-commit setup-pre-commit pre-commit-update release clean
+.PHONY: help install run lint format typecheck tests coverage diff-cover audit deps check build mutation pre-commit setup-pre-commit pre-commit-update release clean
 
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "} ; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -24,7 +24,10 @@ tests: ## Run tests in parallel
 	poetry run pytest -n auto
 
 coverage: ## Run tests with coverage (threshold in pyproject.toml)
-	poetry run pytest -n auto --cov --cov-report=term-missing --cov-report=html
+	poetry run pytest -n auto --cov --cov-report=term-missing --cov-report=html --cov-report=xml
+
+diff-cover: ## Every line changed vs origin/main must be covered (run after coverage)
+	poetry run diff-cover coverage.xml --config-file pyproject.toml
 
 audit: ## Scan dependencies for known vulnerabilities
 	poetry run pip-audit --skip-editable
@@ -32,7 +35,7 @@ audit: ## Scan dependencies for known vulnerabilities
 deps: ## Check for unused, missing and transitive dependencies
 	poetry run deptry .
 
-check: lint typecheck coverage audit deps ## Run every quality gate (same as CI)
+check: pre-commit coverage diff-cover audit deps ## Run every quality gate (same as CI)
 
 mutation: ## Mutation testing: fails if any mutant survives (an untested behavior)
 	poetry run mutmut run

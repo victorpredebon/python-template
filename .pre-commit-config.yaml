@@ -41,6 +41,37 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      - id: import-linter
+        name: import-linter (architecture contracts)
+        entry: poetry run lint-imports
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: vulture
+        name: vulture (dead code)
+        entry: poetry run vulture
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: ast-grep
+        name: ast-grep (project patterns in rules/)
+        entry: poetry run ast-grep scan
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: ast-grep-test
+        name: ast-grep rule tests
+        entry: poetry run ast-grep test --skip-snapshot-tests
+        language: system
+        files: ^(rules/|rule-tests/|sgconfig\.yml$)
+        pass_filenames: false
+      - id: jscpd
+        name: jscpd (duplicated code)
+        entry: jscpd --exit-code 1
+        language: node
+        additional_dependencies: ["jscpd@5.4.1"]
+        types: [python]
+        pass_filenames: false
       - id: actionlint
         name: actionlint
         entry: poetry run actionlint

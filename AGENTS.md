@@ -17,7 +17,8 @@ Python 3.14 template managed with Poetry. Installable `src/` layout:
 ```bash
 make install     # install dependencies (creates .venv)
 make format      # auto-fix lint and format
-make check       # lint + typecheck + tests with coverage + audit + deptry (same gates as CI)
+make check       # all hooks (ruff, mypy, architecture, dead code, duplication, ast-grep),
+                 # tests + coverage, diff coverage, audit, deptry (same gates as CI)
 make build       # build sdist + wheel into dist/ and validate them
 make mutation    # mutation testing: every mutant must be caught by a test
 make run         # run the app
@@ -59,6 +60,12 @@ finish with changed code, and blocks skipping git hooks, force pushes and pushes
 - **Types:** mypy strict. Every function is fully annotated; prefer precise types over `Any`.
 - **Tests:** every behavior change comes with tests. Coverage must stay ≥ 80% (branch coverage).
   Prefer property-based tests (Hypothesis) for pure functions.
+- **Architecture:** module dependencies follow the import-linter contracts in
+  `pyproject.toml` (`calc` is pure logic; only `cli` does I/O). Add a contract when you add a layer.
+- **Project patterns:** live as ast-grep rules in `rules/`, each with examples in `rule-tests/`.
+  When review finds a pattern worth enforcing, propose a rule instead of a comment in AGENTS.md.
+- **No dead or duplicated code:** vulture and jscpd fail on unused definitions and copy-paste.
+  Every changed line must be covered by tests (`make diff-cover`).
 - **Dependencies:** add them with `poetry add` (runtime) or `poetry add --group dev` and commit
   the updated `poetry.lock`. Never edit `poetry.lock` by hand.
 

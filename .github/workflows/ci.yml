@@ -56,6 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0 # diff-cover compares against the base branch
           persist-credentials: false
 
       - uses: ./.github/actions/setup-poetry
@@ -66,6 +67,12 @@ jobs:
           poetry run pytest -n auto
           --cov --cov-report=term-missing --cov-report=xml
           --junitxml=junit.xml
+
+      - name: Diff coverage (every changed line must be tested)
+        if: github.event_name == 'pull_request' && runner.os == 'Linux'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: poetry run diff-cover coverage.xml --config-file pyproject.toml --compare-branch "origin/${BASE_REF}"
 
       - name: Coverage summary
         if: always() && runner.os == 'Linux'

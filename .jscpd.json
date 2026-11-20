@@ -1,0 +1,17 @@
+{
+  "absolute": false,
+  "format": [
+    "python"
+  ],
+  "minLines": 5,
+  "minTokens": 40,
+  "path": [
+    "src",
+    "tests",
+    ".claude/hooks"
+  ],
+  "reporters": [
+    "console"
+  ],
+  "threshold": 0
+}

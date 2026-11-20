@@ -36,6 +36,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 🔐 **Hardened CI/CD** | Actions pinned by SHA, least-privilege tokens, zizmor + actionlint + CodeQL on the workflows, OpenSSF Scorecard, dependency review, Dependabot cooldown |
 | 📦 **Signed releases** | Wheel + sdist built in an unprivileged job, smoke-tested, with CycloneDX SBOM, checksums and SLSA build provenance attached to every GitHub release |
 | 🤖 **AI-agent ready** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
+| 🏛️ **Deterministic design checks** | import-linter architecture contracts, vulture (dead code), jscpd (duplication), diff-cover (100% on changed lines) and project-specific ast-grep rules |
 | 🧬 **Hypothesis + mutmut** | Property-based tests for edge cases, and mutation testing that proves tests notice when code is wrong (coverage alone doesn't) |
 | 🛂 **Gate-bypass detection** | New `noqa`, `type: ignore`, skipped tests or gate config changes need a code owner's `allow-gate-change` label |
 | 🧑‍⚖️ **Independent AI review** | Optional Claude reviewer (read-only, comments only) focused on bugs, unneeded code and weak tests |
@@ -129,6 +130,7 @@ make coverage            # run tests with coverage (fails below 80%)
 make audit               # scan dependencies for known CVEs
 make deps                # check for unused/missing/transitive dependencies
 make check               # every quality gate, same as CI
+make diff-cover          # every changed line must be covered (after make coverage)
 make mutation            # mutation testing (fails if any mutant survives)
 make build               # build sdist + wheel into dist/ and validate them
 make release             # bump version, update CHANGELOG and tag locally (no push)
@@ -148,6 +150,10 @@ The Python tools run from the project's virtualenv via `poetry run` — no separ
 | `ruff` | pre-push | Lints and auto-fixes — covers flake8, isort, pyupgrade, bandit and more |
 | `ruff-format` | pre-push | Opinionated code formatting |
 | `mypy` | pre-push | Static type checking of the whole project (`src/` and `tests/`) |
+| `import-linter` | pre-push | Architecture contracts in `pyproject.toml` (layers, forbidden imports) |
+| `vulture` | pre-push | Dead code: functions, classes and attributes nothing uses |
+| `ast-grep` | pre-push | Project patterns in `rules/` (+ `ast-grep test` for `rule-tests/`) |
+| `jscpd` | pre-push | Duplicated code, including copy-paste within one file |
 | `actionlint` | pre-push | Validates GitHub Actions workflow syntax and expressions |
 | `zizmor` | pre-push | Security audit of workflows (injection, permissions, unpinned actions, cache poisoning) |
 | `commitizen` | commit-msg | Enforces Conventional Commits spec |
@@ -169,7 +175,7 @@ Runs on pull requests, pushes to `main`, the merge queue, weekly (to catch new C
 | Job | When | What it does |
 |-----|------|--------------|
 | **Lint & type-check** | always | pre-commit: Ruff, mypy, actionlint, zizmor, file checks |
-| **Test** | always | pytest on Linux, Windows and macOS; coverage gate; JUnit/coverage reports as artifacts and in the job summary |
+| **Test** | always | pytest on Linux, Windows and macOS; coverage gate; on PRs, 100% coverage of changed lines (diff-cover); JUnit/coverage reports as artifacts and in the job summary |
 | **Dependency audit** | always | `pip-audit` (blocking) and `deptry` |
 | **Dependency review** | PRs | Blocks PRs that add dependencies with known vulnerabilities (moderate+) |
 | **Build package** | always | Plans the next version, builds sdist + wheel, `poetry check --strict`, `twine check --strict`, smoke-tests the wheel in a clean venv, generates a CycloneDX SBOM and `SHA256SUMS.txt` |
@@ -206,6 +212,30 @@ It runs separately from `ci.yml` so editing the title or adding the label re-che
 ### `claude-review.yml` — independent AI review (opt-in)
 
 A separate Claude session with read-only tools reviews each PR and only comments. It skips style (the linters own that) and focuses on bugs, unneeded code, weak tests and `AGENTS.md` violations. Enable it by adding the `ANTHROPIC_API_KEY` secret (or running `/install-github-app` in Claude Code) and the repository variable `CLAUDE_REVIEW_ENABLED=true`.
+
+### Deterministic code-quality checks
+
+Rules an AI agent can be *asked* to follow are enforced by tools instead, so they hold even when the instructions are ignored:
+
+| Concern | Tool | Configured in |
+|---------|------|---------------|
+| Architecture: `cli` depends on `calc`, never the reverse; `calc` has no I/O, logging or process control | import-linter | `[tool.importlinter]` in `pyproject.toml` |
+| Dead code | vulture | `[tool.vulture]` |
+| Copy-paste (also within one file) | jscpd | `.jscpd.json` |
+| New code without tests | diff-cover (100% of changed lines) | `[tool.diff_cover]` |
+| Project-specific patterns | ast-grep | `rules/` + `rule-tests/` |
+
+Starter ast-grep rules (each with valid/invalid examples tested by `ast-grep test`):
+
+| Rule | Why |
+|------|-----|
+| `test-must-assert` | A test that only runs code passes even when the result is wrong |
+| `no-sleep-in-tests` | Sleeps make tests slow and flaky |
+| `logger-uses-module-name` | `getLogger(__name__)` keeps logging configurable per module |
+| `logging-config-only-in-entrypoint` | Library code must not override the app's logging setup |
+| `exit-only-in-entrypoint` | Library code raises; only `cli.py` / `__main__.py` exit the process |
+
+Changing these configurations, or deleting a rule or its tests, is a gate change: the PR policy requires the `allow-gate-change` label from a code owner.
 
 ### `codeql.yml` — static analysis
 
@@ -258,6 +288,8 @@ python-template/
 ├── poetry.toml               # Poetry settings (virtualenv created inside project)
 ├── poetry.lock               # Pinned dependencies
 ├── .pre-commit-config.yaml   # Pre-commit hooks
+├── rules/ + rule-tests/      # ast-grep project rules and their tests (sgconfig.yml)
+├── .jscpd.json               # Duplicated-code detection
 ├── .claude/                  # Claude Code settings and hooks (guard + quality gates)
 ├── AGENTS.md                 # Instructions for AI coding agents (CLAUDE.md imports it)
 ├── SECURITY.md               # How to report vulnerabilities

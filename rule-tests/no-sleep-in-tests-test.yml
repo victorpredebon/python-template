@@ -1,0 +1,9 @@
+id: no-sleep-in-tests
+valid:
+  - |
+    def test_fast(clock: FakeClock) -> None:
+        clock.advance(5)
+invalid:
+  - time.sleep(1)
+  - sleep(0.1)
+  - await asyncio.sleep(1)

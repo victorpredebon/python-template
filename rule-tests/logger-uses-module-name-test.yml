@@ -1,0 +1,8 @@
+id: logger-uses-module-name
+valid:
+  - logger = getLogger(__name__)
+  - logger = logging.getLogger(__name__)
+invalid:
+  - logger = getLogger('calculator')
+  - logger = logging.getLogger()
+  - logger = logging.getLogger(__file__)

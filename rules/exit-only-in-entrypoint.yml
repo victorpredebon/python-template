@@ -1,0 +1,13 @@
+id: exit-only-in-entrypoint
+language: python
+severity: error
+message: Only the entry point may exit the process.
+note: Library code should raise an exception and let the caller decide; exiting makes it untestable and unusable as a library.
+files: ["src/**"]
+ignores: ["src/**/cli.py", "src/**/__main__.py"]
+rule:
+  any:
+    - pattern: sys.exit($$$)
+    - pattern: exit($$$)
+    - pattern: quit($$$)
+    - pattern: os._exit($$$)

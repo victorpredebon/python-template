@@ -1,0 +1,20 @@
+id: test-must-assert
+language: python
+severity: error
+message: Test function never asserts anything.
+note: >-
+  A test that only runs code passes even when the result is wrong. Assert on the
+  behavior (or use pytest.raises / pytest.warns).
+files: ["tests/**"]
+rule:
+  kind: function_definition
+  has:
+    field: name
+    regex: ^test_
+  not:
+    has:
+      stopBy: end
+      any:
+        - kind: assert_statement
+        - pattern: pytest.raises($$$)
+        - pattern: pytest.warns($$$)

@@ -1,0 +1,14 @@
+id: logger-uses-module-name
+language: python
+severity: error
+message: Create loggers with getLogger(__name__).
+note: Module-named loggers can be configured per package and show where a record came from.
+files: ["src/**"]
+rule:
+  any:
+    - pattern: getLogger($$$ARGS)
+    - pattern: logging.getLogger($$$ARGS)
+  not:
+    any:
+      - pattern: getLogger(__name__)
+      - pattern: logging.getLogger(__name__)
