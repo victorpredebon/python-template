@@ -8,5 +8,6 @@
 /pyproject.toml           @victorpredebon
 /poetry.lock              @victorpredebon
 /.pre-commit-config.yaml  @victorpredebon
+/.claude/                 @victorpredebon
 /AGENTS.md                @victorpredebon
 /CLAUDE.md                @victorpredebon

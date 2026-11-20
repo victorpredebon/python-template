@@ -36,7 +36,10 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 🔐 **Hardened CI/CD** | Actions pinned by SHA, least-privilege tokens, zizmor + actionlint + CodeQL on the workflows, OpenSSF Scorecard, dependency review, Dependabot cooldown |
 | 📦 **Signed releases** | Wheel + sdist built in an unprivileged job, smoke-tested, with CycloneDX SBOM, checksums and SLSA build provenance attached to every GitHub release |
 | 🤖 **AI-agent ready** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
-| 🧬 **Hypothesis** | Property-based tests that catch the edge cases example-based tests miss |
+| 🧬 **Hypothesis + mutmut** | Property-based tests for edge cases, and mutation testing that proves tests notice when code is wrong (coverage alone doesn't) |
+| 🛂 **Gate-bypass detection** | New `noqa`, `type: ignore`, skipped tests or gate config changes need a code owner's `allow-gate-change` label |
+| 🧑‍⚖️ **Independent AI review** | Optional Claude reviewer (read-only, comments only) focused on bugs, unneeded code and weak tests |
+| 🪝 **Claude Code hooks** | `.claude/settings.json` runs the gates before an agent finishes and blocks skipping hooks / force pushes |
 
 ---
 
@@ -126,6 +129,7 @@ make coverage            # run tests with coverage (fails below 80%)
 make audit               # scan dependencies for known CVEs
 make deps                # check for unused/missing/transitive dependencies
 make check               # every quality gate, same as CI
+make mutation            # mutation testing (fails if any mutant survives)
 make build               # build sdist + wheel into dist/ and validate them
 make release             # bump version, update CHANGELOG and tag locally (no push)
 make pre-commit          # run all pre-commit hooks
@@ -156,7 +160,7 @@ make setup-pre-commit   # install hooks
 
 ## ⚙️ CI/CD
 
-Three workflows, all with a read-only token by default (`permissions: {}`), every third-party Action pinned by commit SHA and kept current by Dependabot (with a 7-day cooldown).
+Six workflows, all with a read-only token by default (`permissions: {}`), every third-party Action pinned by commit SHA and kept current by Dependabot (with a 7-day cooldown).
 
 ### `ci.yml` — quality gates, packaging and release
 
@@ -167,7 +171,6 @@ Runs on pull requests, pushes to `main`, the merge queue, weekly (to catch new C
 | **Lint & type-check** | always | pre-commit: Ruff, mypy, actionlint, zizmor, file checks |
 | **Test** | always | pytest on Linux, Windows and macOS; coverage gate; JUnit/coverage reports as artifacts and in the job summary |
 | **Dependency audit** | always | `pip-audit` (blocking) and `deptry` |
-| **Conventional commits** | PRs | Validates the PR title (the squash-merge commit) and every commit with Commitizen |
 | **Dependency review** | PRs | Blocks PRs that add dependencies with known vulnerabilities (moderate+) |
 | **Build package** | always | Plans the next version, builds sdist + wheel, `poetry check --strict`, `twine check --strict`, smoke-tests the wheel in a clean venv, generates a CycloneDX SBOM and `SHA256SUMS.txt` |
 | **CI OK** | always | Single aggregated status — make it the only required check in your branch ruleset |
@@ -187,6 +190,23 @@ gh attestation verify python_template-X.Y.Z-py3-none-any.whl --repo victorpredeb
 
 Since `main` is protected (changes only via pull request), releases run with `--no-commit`: only the tag is pushed, so `project.version` in `pyproject.toml` and `CHANGELOG.md` are not updated in the repository. The git tag (`vX.Y.Z`) is the source of truth; the built packages carry the released version.
 
+### `pr-policy.yml` — rules for every pull request
+
+| Job | What it does |
+|-----|--------------|
+| **Conventional commits** | Validates the PR title (the squash-merge commit) and every commit with Commitizen |
+| **Quality-gate changes** | Fails if the PR adds `# noqa`, `# type: ignore`, `pragma: no cover`, skipped/xfail tests, or changes gate configuration (coverage threshold, Ruff/mypy rules, hook stages, workflow severities), unless a **human code owner** added the `allow-gate-change` label. Labels added by bots don't count, and code owners are read from the base branch, so an agent can't approve its own bypass. |
+
+It runs separately from `ci.yml` so editing the title or adding the label re-checks in seconds.
+
+### `mutation.yml` — do the tests actually test?
+
+[mutmut](https://github.com/boxed/mutmut) makes small changes to the code (flip a condition, change a string, drop an argument) and runs the tests. If they still pass, that behavior is untested even if coverage says 100%. Runs on PRs that touch code or tests, weekly and on demand; fails if any mutant survives.
+
+### `claude-review.yml` — independent AI review (opt-in)
+
+A separate Claude session with read-only tools reviews each PR and only comments. It skips style (the linters own that) and focuses on bugs, unneeded code, weak tests and `AGENTS.md` violations. Enable it by adding the `ANTHROPIC_API_KEY` secret (or running `/install-github-app` in Claude Code) and the repository variable `CLAUDE_REVIEW_ENABLED=true`.
+
 ### `codeql.yml` — static analysis
 
 CodeQL with the `security-extended` suite for the Python code **and for the workflows themselves** (script injection, excessive permissions). Results appear under *Security → Code scanning*.
@@ -199,7 +219,7 @@ CodeQL with the `security-extended` suite for the Python code **and for the work
 
 The workflows can't enforce these; configure them once in *Settings*:
 
-- **Rulesets → `main`:** require a pull request, require the **CI OK** status check, require review from Code Owners, block force pushes, allow only squash merges (optionally enable the merge queue).
+- **Rulesets → `main`:** require a pull request, require the **CI OK**, **Conventional commits** and **Quality-gate changes** status checks, require review from Code Owners, block force pushes, allow only squash merges (optionally enable the merge queue).
 - **Environments → `release`:** restrict to the `main` branch; add required reviewers if releases need a human approval.
 - **Code security:** enable Dependabot alerts and security updates, secret scanning with push protection, and private vulnerability reporting.
 
@@ -223,8 +243,12 @@ python-template/
 │   ├── actions/setup-poetry/ # Shared CI setup (composite action)
 │   ├── workflows/
 │   │   ├── ci.yml            # Quality gates, packaging and release
+│   │   ├── pr-policy.yml     # PR title/commits and gate-bypass checks
+│   │   ├── mutation.yml      # Mutation testing
+│   │   ├── claude-review.yml # Optional independent AI review
 │   │   ├── codeql.yml        # CodeQL for Python and workflows
 │   │   └── scorecard.yml     # OpenSSF Scorecard
+│   ├── scripts/              # check-quality-gates.sh
 │   ├── zizmor.yml            # Workflow security audit config
 │   ├── ISSUE_TEMPLATE/       # Bug report / feature request forms
 │   ├── CODEOWNERS
@@ -234,6 +258,7 @@ python-template/
 ├── poetry.toml               # Poetry settings (virtualenv created inside project)
 ├── poetry.lock               # Pinned dependencies
 ├── .pre-commit-config.yaml   # Pre-commit hooks
+├── .claude/                  # Claude Code settings and hooks (guard + quality gates)
 ├── AGENTS.md                 # Instructions for AI coding agents (CLAUDE.md imports it)
 ├── SECURITY.md               # How to report vulnerabilities
 └── Makefile                  # Dev commands
@@ -272,6 +297,8 @@ They have separate jobs: Commitizen only validates commit messages locally (`com
 
 **How do AI coding agents fit in?**
 `AGENTS.md` is the shared instruction file most agents read automatically (`CLAUDE.md` just imports it). It lists the commands, conventions and things an agent must never do (weaken gates, touch workflows as a side effect, pin Actions by tag). Nothing relies on the agent obeying, though: every rule that matters is enforced by CI, CODEOWNERS and the branch ruleset, and the PR template asks authors to disclose AI assistance.
+
+In Claude Code, `.claude/settings.json` adds local guardrails: a Stop hook runs lint, mypy and tests whenever the agent tries to finish with changed code (failures go back to the agent); a PreToolUse hook blocks git commands that skip hooks, force pushes and pushes to `main`; editing `.github/`, `.claude/` and `AGENTS.md` asks for confirmation; and `.env`/key files can't be read. Personal overrides go in `.claude/settings.local.json` (git-ignored).
 
 **Does it publish to PyPI?**
 No, packages are attached to GitHub releases. To publish to PyPI, add a job after **Release** that downloads the `dist` artifact and runs `pypa/gh-action-pypi-publish` with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC, no API token).

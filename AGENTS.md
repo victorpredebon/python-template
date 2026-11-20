@@ -19,10 +19,36 @@ make install     # install dependencies (creates .venv)
 make format      # auto-fix lint and format
 make check       # lint + typecheck + tests with coverage + audit + deptry (same gates as CI)
 make build       # build sdist + wheel into dist/ and validate them
+make mutation    # mutation testing: every mutant must be caught by a test
 make run         # run the app
 ```
 
 Always run `make check` before declaring a task done, and report its real result.
+In Claude Code, `.claude/settings.json` runs the fast gates automatically when you try to
+finish with changed code, and blocks skipping git hooks, force pushes and pushes to `main`.
+
+## How to work
+
+1. **Understand before changing.** Read the code you will touch and search for something
+   that already does what you need. Reuse or extend it instead of adding a parallel version.
+2. **Plan non-trivial work.** For anything beyond a small fix, write the plan (files,
+   approach, tests) and get it approved before coding. Ask when requirements are ambiguous;
+   do not guess.
+3. **Test first.** Write a failing test that states the required behavior, then the
+   smallest code that makes it pass. Tests written after the code tend to describe what was
+   written, not what was asked. `make mutation` shows behavior no test really checks.
+4. **Write the least code that solves the task.**
+   - No abstractions, base classes, plugin points, config options or parameters that
+     today's task does not need. Duplication twice is fine; abstract on the third use.
+   - No speculative error handling for situations that cannot happen; handle the ones
+     that can, explicitly.
+   - Prefer the standard library over a new dependency.
+   - Delete code that your change makes unused.
+   - Comments explain *why*, never restate *what*.
+5. **Keep changes small and focused.** One concern per PR; no drive-by refactors or
+   reformatting. A reviewer should understand the diff in a few minutes.
+6. **Verify, then report honestly.** Run `make check`; state what passed, what failed and
+   what you did not verify.
 
 ## Conventions
 
@@ -37,6 +63,10 @@ Always run `make check` before declaring a task done, and report its real result
   the updated `poetry.lock`. Never edit `poetry.lock` by hand.
 
 ## Never
+
+Quality-gate bypasses and gate configuration changes are detected in CI (`PR policy`
+workflow) and need a code owner to add the `allow-gate-change` label; agents can't approve
+their own bypass.
 
 - Weaken a quality gate to make it pass: no new `# noqa`, `# type: ignore`, `pragma: no cover`,
   skipped/xfail tests, lowered coverage threshold or disabled rules without an explicit reason
