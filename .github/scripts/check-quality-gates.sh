@@ -51,7 +51,10 @@ labeler="$(gh api --paginate "repos/${REPO}/issues/${PR_NUMBER}/events" \
 has_label="$(gh api "repos/${REPO}/issues/${PR_NUMBER}/labels" --jq "any(.[]; .name == \"${LABEL}\")")"
 
 # Code owners come from the base branch, so the PR cannot add new approvers.
-owners="$(git show "${BASE_SHA}:.github/CODEOWNERS" | awk '$1 == "*" { for (i = 2; i <= NF; i++) { sub(/^@/, "", $i); print $i } }')"
+# Without a CODEOWNERS file there, the repository owner is the only approver.
+owners="$(git show "${BASE_SHA}:.github/CODEOWNERS" 2> /dev/null |
+  awk '$1 == "*" { for (i = 2; i <= NF; i++) { sub(/^@/, "", $i); print $i } }' || true)"
+owners="${owners:-${REPO%%/*}}"
 login="${labeler%% *}"
 type="${labeler##* }"
 
