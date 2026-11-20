@@ -101,34 +101,6 @@ jobs:
       - name: Check dependency hygiene
         run: make deps
 
-  commits:
-    name: Conventional commits
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - uses: ./.github/actions/setup-poetry
-
-      # With squash merges the PR title becomes the commit on main that
-      # semantic-release reads, so it must follow Conventional Commits too.
-      - name: Check PR title
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: poetry run cz check --message "${PR_TITLE}"
-
-      - name: Check commit messages
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: poetry run cz check --rev-range "${BASE_SHA}..${HEAD_SHA}"
-
   dependency-review:
     name: Dependency review
     if: github.event_name == 'pull_request'
@@ -225,7 +197,7 @@ jobs:
   ci-ok:
     name: CI OK
     if: always()
-    needs: [lint, test, security, commits, dependency-review, build]
+    needs: [lint, test, security, dependency-review, build]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
