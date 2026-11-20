@@ -42,6 +42,7 @@ dev = [
   "hypothesis>=6",
   "zizmor>=1",
   "actionlint-py>=1.7",
+  "mutmut>=3",
 ]
 # Packaging checks and SBOM: `poetry install --with build`
 build = ["twine>=6", "cyclonedx-bom>=7"]
@@ -78,6 +79,8 @@ fixable = ["ALL"]
 
 
 [tool.ruff.lint.per-file-ignores]
+# Standalone Claude Code hook scripts, run directly by path; not an importable package.
+".claude/hooks/*.py" = ["INP001"]
 "**/tests/**.py" = [
   "ANN",     # flake8-annotations (ANN)
   "PLR2004", # Magic value used in comparison
@@ -124,7 +127,7 @@ cyclonedx-bom = "cyclonedx_py"
 
 [tool.mypy]
 mypy_path = "src"
-files = ["src", "tests"]
+files = ["src", "tests", ".claude/hooks"]
 strict = true
 
 
@@ -144,3 +147,12 @@ show_missing = true
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+# Mutation testing: `make mutation`. Changes the code in small ways and checks
+# that some test fails; a surviving mutant is behavior no test really checks.
+[tool.mutmut]
+source_paths = ["src/"]
+pytest_add_cli_args_test_selection = ["tests/"]
+pytest_add_cli_args = ["-p", "no:xdist"]
+also_copy = [".claude/hooks/"]

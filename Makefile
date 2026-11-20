@@ -1,4 +1,4 @@
-.PHONY: help install run lint format typecheck tests coverage audit deps check build pre-commit setup-pre-commit pre-commit-update release clean
+.PHONY: help install run lint format typecheck tests coverage audit deps check build mutation pre-commit setup-pre-commit pre-commit-update release clean
 
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "} ; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -33,6 +33,11 @@ deps: ## Check for unused, missing and transitive dependencies
 	poetry run deptry .
 
 check: lint typecheck coverage audit deps ## Run every quality gate (same as CI)
+
+mutation: ## Mutation testing: fails if any mutant survives (an untested behavior)
+	poetry run mutmut run
+	poetry run mutmut export-cicd-stats
+	@poetry run python -c "import json, sys; s = json.load(open('mutants/mutmut-cicd-stats.json')); bad = s['survived'] + s['no_tests'] + s['suspicious'] + s['timeout']; print(f\"{s['killed']}/{s['total']} mutants killed, {bad} not caught\"); sys.exit(1 if bad else 0)"
 
 build: ## Build sdist + wheel into dist/ and validate their metadata
 	rm -rf dist
