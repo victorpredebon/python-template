@@ -1,15 +1,23 @@
 name: Setup Python and Poetry
-description: Install Python (from .python-version), a pinned Poetry and the project dependencies, with a cached virtualenv.
+description: Install Python, a pinned Poetry and the project dependencies, optionally with a cached virtualenv.
 
 inputs:
   install-args:
     description: Extra arguments for `poetry install` (e.g. `--only release --no-root`).
     required: false
     default: ""
+  python-version:
+    description: Python version to use. Defaults to the one in .python-version.
+    required: false
+    default: ""
   poetry-version:
     description: Poetry version to install.
     required: false
     default: "2.4.3"
+  cache:
+    description: Cache the virtualenv. Disable in jobs that produce release artifacts (cache poisoning).
+    required: false
+    default: "true"
 
 runs:
   using: composite
@@ -17,13 +25,18 @@ runs:
     - id: setup-python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
-        python-version-file: .python-version
+        python-version: ${{ inputs.python-version }}
+        python-version-file: ${{ inputs.python-version == '' && '.python-version' || '' }}
 
     - name: Install Poetry
       shell: bash
-      run: pipx install "poetry==${{ inputs.poetry-version }}" --python "${{ steps.setup-python.outputs.python-path }}"
+      env:
+        POETRY_VERSION: ${{ inputs.poetry-version }}
+        PYTHON_PATH: ${{ steps.setup-python.outputs.python-path }}
+      run: pipx install "poetry==${POETRY_VERSION}" --python "${PYTHON_PATH}"
 
     - name: Cache virtualenv
+      if: inputs.cache == 'true'
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: .venv
@@ -31,4 +44,7 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: poetry install ${{ inputs.install-args }}
+      env:
+        INSTALL_ARGS: ${{ inputs.install-args }}
+      # INSTALL_ARGS is intentionally unquoted so it splits into separate arguments.
+      run: poetry install --no-interaction ${INSTALL_ARGS}

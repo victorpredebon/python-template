@@ -1,4 +1,4 @@
-.PHONY: help install run lint format typecheck tests coverage audit deps check pre-commit setup-pre-commit pre-commit-update release clean
+.PHONY: help install run lint format typecheck tests coverage audit deps check build pre-commit setup-pre-commit pre-commit-update release clean
 
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "} ; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -33,6 +33,13 @@ deps: ## Check for unused, missing and transitive dependencies
 	poetry run deptry .
 
 check: lint typecheck coverage audit deps ## Run every quality gate (same as CI)
+
+build: ## Build sdist + wheel into dist/ and validate their metadata
+	rm -rf dist
+	poetry install --with build
+	poetry check --strict
+	poetry build
+	poetry run twine check --strict dist/*
 
 pre-commit: ## Run pre-commit
 	poetry run pre-commit run --all-files

@@ -7,6 +7,22 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.14,<4"
 dependencies = []
+keywords = ["template", "boilerplate", "poetry", "ruff", "mypy"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/victorpredebon/python-template"
+Repository = "https://github.com/victorpredebon/python-template"
+Issues = "https://github.com/victorpredebon/python-template/issues"
+Changelog = "https://github.com/victorpredebon/python-template/releases"
 
 [project.scripts]
 calculator = "calculator.cli:main"
@@ -23,13 +39,21 @@ dev = [
   "commitizen>=4.19.3,<5",
   "pip-audit>=2.10.1,<3",
   "deptry>=0.25.1,<0.26",
+  "hypothesis>=6",
+  "zizmor>=1",
+  "actionlint-py>=1.7",
 ]
+# Packaging checks and SBOM: `poetry install --with build`
+build = ["twine>=6", "cyclonedx-bom>=7"]
 # Only needed by the CI release job: `poetry install --only release`
 release = ["python-semantic-release>=10.7.0,<11"]
 
 
 [tool.poetry]
 packages = [{ include = "calculator", from = "src" }]
+
+[tool.poetry.group.build]
+optional = true
 
 [tool.poetry.group.release]
 optional = true
@@ -95,6 +119,7 @@ known_first_party = ["calculator"]
 
 [tool.deptry.package_module_name_map]
 python-semantic-release = "semantic_release"
+cyclonedx-bom = "cyclonedx_py"
 
 
 [tool.mypy]
