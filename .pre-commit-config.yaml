@@ -41,6 +41,18 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      - id: actionlint
+        name: actionlint
+        entry: poetry run actionlint
+        language: system
+        files: ^\.github/workflows/
+        pass_filenames: false
+      - id: zizmor
+        name: zizmor (GitHub Actions security)
+        entry: poetry run zizmor --offline --min-severity low .github
+        language: system
+        files: ^\.github/
+        pass_filenames: false
       - id: commitizen
         name: commitizen
         entry: poetry run cz check --commit-msg-file
