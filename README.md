@@ -33,7 +33,10 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 🛡️ **pip-audit** | Scans `poetry.lock` for dependencies with known CVEs |
 | 🧹 **deptry** | Detects unused, missing, and transitive dependencies in `pyproject.toml` |
 | 🚀 **python-semantic-release** | Automates versioning and changelog generation from Conventional Commits (optional `release` group, installed only where it runs) |
-| 🔐 **Hardened CI** | Actions pinned by SHA, read-only token by default, blocking `pip-audit` plus a weekly scheduled scan |
+| 🔐 **Hardened CI/CD** | Actions pinned by SHA, least-privilege tokens, zizmor + actionlint + CodeQL on the workflows, OpenSSF Scorecard, dependency review, Dependabot cooldown |
+| 📦 **Signed releases** | Wheel + sdist built in an unprivileged job, smoke-tested, with CycloneDX SBOM, checksums and SLSA build provenance attached to every GitHub release |
+| 🤖 **AI-agent ready** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
+| 🧬 **Hypothesis** | Property-based tests that catch the edge cases example-based tests miss |
 
 ---
 
@@ -90,7 +93,7 @@ After creating your repository from the template, replace the example names:
 1. **Package** — rename `src/calculator/` to your package name and update its imports in `src/` and `tests/`.
 2. **`pyproject.toml`** — `name`, `description`, `authors`, `[project.scripts]` (command name and `module:function`), `packages` under `[tool.poetry]` and `source_pkgs` under `[tool.coverage.run]`.
 3. **Version history** — reset `version` to `0.1.0` (or `1.0.0`) and clear `CHANGELOG.md`.
-4. **Ownership** — `LICENSE` holder, `.github/CODEOWNERS`, the links in `SECURITY.md` and `.github/ISSUE_TEMPLATE/config.yml`, and this README (badges, star history, author).
+4. **Ownership** — `LICENSE` holder, `[project.urls]` in `pyproject.toml`, `.github/CODEOWNERS`, the links in `SECURITY.md` and `.github/ISSUE_TEMPLATE/config.yml`, and this README (badges, star history, author).
 5. **Security model** — delete or rewrite `SECURITY_MODEL.md` for your project.
 6. Run `poetry lock && make install && make check`.
 
@@ -123,6 +126,7 @@ make coverage            # run tests with coverage (fails below 80%)
 make audit               # scan dependencies for known CVEs
 make deps                # check for unused/missing/transitive dependencies
 make check               # every quality gate, same as CI
+make build               # build sdist + wheel into dist/ and validate them
 make release             # bump version, update CHANGELOG and tag locally (no push)
 make pre-commit          # run all pre-commit hooks
 make setup-pre-commit    # install git hooks (commit-msg + pre-push)
@@ -140,6 +144,8 @@ The Python tools run from the project's virtualenv via `poetry run` — no separ
 | `ruff` | pre-push | Lints and auto-fixes — covers flake8, isort, pyupgrade, bandit and more |
 | `ruff-format` | pre-push | Opinionated code formatting |
 | `mypy` | pre-push | Static type checking of the whole project (`src/` and `tests/`) |
+| `actionlint` | pre-push | Validates GitHub Actions workflow syntax and expressions |
+| `zizmor` | pre-push | Security audit of workflows (injection, permissions, unpinned actions, cache poisoning) |
 | `commitizen` | commit-msg | Enforces Conventional Commits spec |
 
 ```bash
@@ -150,18 +156,52 @@ make setup-pre-commit   # install hooks
 
 ## ⚙️ CI/CD
 
-The included GitHub Actions workflow (`.github/workflows/ci.yml`) runs on every push and pull request to `main`, weekly on a schedule, and on demand:
+Three workflows, all with a read-only token by default (`permissions: {}`), every third-party Action pinned by commit SHA and kept current by Dependabot (with a 7-day cooldown).
 
-| Job | Trigger | What it does |
-|-----|---------|-------------|
-| **Quality** | push + PR + weekly + manual | Linting, formatting, type-check, tests, `pip-audit` (blocking), `deptry` |
-| **Release** | push to `main` only | Computes the next version, tags the merge commit and creates a GitHub release with generated notes |
+### `ci.yml` — quality gates, packaging and release
 
-Shared setup (Python from `.python-version`, a pinned Poetry, cached `.venv`) lives in the composite action `.github/actions/setup-poetry`. Every third-party Action is pinned by commit SHA and kept up to date by Dependabot. The workflow token is read-only except in the release job.
+Runs on pull requests, pushes to `main`, the merge queue, weekly (to catch new CVEs) and on demand.
 
-The release job only runs after **Quality** passes, and requires a `GH_TOKEN` secret (automatically available in GitHub Actions via `secrets.GITHUB_TOKEN`).
+| Job | When | What it does |
+|-----|------|--------------|
+| **Lint & type-check** | always | pre-commit: Ruff, mypy, actionlint, zizmor, file checks |
+| **Test** | always | pytest on Linux, Windows and macOS; coverage gate; JUnit/coverage reports as artifacts and in the job summary |
+| **Dependency audit** | always | `pip-audit` (blocking) and `deptry` |
+| **Conventional commits** | PRs | Validates the PR title (the squash-merge commit) and every commit with Commitizen |
+| **Dependency review** | PRs | Blocks PRs that add dependencies with known vulnerabilities (moderate+) |
+| **Build package** | always | Plans the next version, builds sdist + wheel, `poetry check --strict`, `twine check --strict`, smoke-tests the wheel in a clean venv, generates a CycloneDX SBOM and `SHA256SUMS.txt` |
+| **CI OK** | always | Single aggregated status — make it the only required check in your branch ruleset |
+| **Release** | push to `main` with releasable commits | Verifies the artifacts, signs SLSA build provenance, creates the `vX.Y.Z` tag and GitHub release, and uploads wheel, sdist, SBOM and checksums |
 
-Since `main` is protected (changes only via pull request), the job runs `semantic-release version --no-commit`: it pushes only the tag, so `project.version` in `pyproject.toml` and `CHANGELOG.md` are not updated in the repository. The git tag (`vX.Y.Z`) is the source of truth for the released version.
+How a release happens:
+
+1. A PR is squash-merged into `main` with a Conventional Commit title (`feat:` → minor, `fix:`/`perf:` → patch, `!` → major; `docs:`/`chore:`/`ci:` → no release).
+2. **Build package** asks python-semantic-release for the next version, stamps it into the package and builds it **without any write permission or cache** (so a poisoned cache or a compromised build step cannot touch the repository).
+3. **Release** runs in the `release` environment (add required reviewers there to gate releases), re-checks the version and checksums, attests the artifacts and publishes the tag and release.
+
+Verify a downloaded artifact came from this repository's workflow:
+
+```bash
+gh attestation verify python_template-X.Y.Z-py3-none-any.whl --repo victorpredebon/python-template
+```
+
+Since `main` is protected (changes only via pull request), releases run with `--no-commit`: only the tag is pushed, so `project.version` in `pyproject.toml` and `CHANGELOG.md` are not updated in the repository. The git tag (`vX.Y.Z`) is the source of truth; the built packages carry the released version.
+
+### `codeql.yml` — static analysis
+
+CodeQL with the `security-extended` suite for the Python code **and for the workflows themselves** (script injection, excessive permissions). Results appear under *Security → Code scanning*.
+
+### `scorecard.yml` — supply-chain posture
+
+[OpenSSF Scorecard](https://scorecard.dev) grades the repository's security practices (pinning, branch protection, token permissions, ...) weekly and on changes to branch protection.
+
+### Recommended repository settings
+
+The workflows can't enforce these; configure them once in *Settings*:
+
+- **Rulesets → `main`:** require a pull request, require the **CI OK** status check, require review from Code Owners, block force pushes, allow only squash merges (optionally enable the merge queue).
+- **Environments → `release`:** restrict to the `main` branch; add required reviewers if releases need a human approval.
+- **Code security:** enable Dependabot alerts and security updates, secret scanning with push protection, and private vulnerability reporting.
 
 ---
 
@@ -181,7 +221,11 @@ python-template/
 │   └── test_cli.py
 ├── .github/
 │   ├── actions/setup-poetry/ # Shared CI setup (composite action)
-│   ├── workflows/ci.yml      # Quality + release pipeline
+│   ├── workflows/
+│   │   ├── ci.yml            # Quality gates, packaging and release
+│   │   ├── codeql.yml        # CodeQL for Python and workflows
+│   │   └── scorecard.yml     # OpenSSF Scorecard
+│   ├── zizmor.yml            # Workflow security audit config
 │   ├── ISSUE_TEMPLATE/       # Bug report / feature request forms
 │   ├── CODEOWNERS
 │   ├── PULL_REQUEST_TEMPLATE.md
@@ -190,6 +234,7 @@ python-template/
 ├── poetry.toml               # Poetry settings (virtualenv created inside project)
 ├── poetry.lock               # Pinned dependencies
 ├── .pre-commit-config.yaml   # Pre-commit hooks
+├── AGENTS.md                 # Instructions for AI coding agents (CLAUDE.md imports it)
 ├── SECURITY.md               # How to report vulnerabilities
 └── Makefile                  # Dev commands
 ```
@@ -224,6 +269,12 @@ Run `make setup-pre-commit`. This installs hooks for the `commit-msg` (Commitize
 
 **Why Commitizen *and* python-semantic-release?**
 They have separate jobs: Commitizen only validates commit messages locally (`commit-msg` hook); python-semantic-release owns versioning, tags and the changelog in CI.
+
+**How do AI coding agents fit in?**
+`AGENTS.md` is the shared instruction file most agents read automatically (`CLAUDE.md` just imports it). It lists the commands, conventions and things an agent must never do (weaken gates, touch workflows as a side effect, pin Actions by tag). Nothing relies on the agent obeying, though: every rule that matters is enforced by CI, CODEOWNERS and the branch ruleset, and the PR template asks authors to disclose AI assistance.
+
+**Does it publish to PyPI?**
+No, packages are attached to GitHub releases. To publish to PyPI, add a job after **Release** that downloads the `dist` artifact and runs `pypa/gh-action-pypi-publish` with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC, no API token).
 
 **Why isn't this a Cookiecutter/Copier template?**
 So the template repository itself stays a real, runnable project whose CI tests everything you get. Follow the rename checklist in [Make it yours](#make-it-yours-rename-checklist) instead.

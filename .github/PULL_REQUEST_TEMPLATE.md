@@ -15,3 +15,9 @@
 - [ ] `make check` passes locally
 - [ ] Tests added or updated
 - [ ] Documentation updated (README, docstrings) if needed
+
+## AI assistance
+
+- [ ] This PR was written with help from an AI tool (which one: ___ )
+- [ ] I reviewed every line, understand it and ran it locally
+- [ ] No quality gate was weakened (`noqa`, `type: ignore`, skipped tests, lower coverage)

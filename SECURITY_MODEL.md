@@ -10,12 +10,12 @@
 | Nome | Código |
 |---|---|
 | **App** | `src/calculator/` |
-| **CI/CD** | `.github/workflows/ci.yml` (jobs `quality` e `release`), `.github/actions/setup-poetry` |
+| **CI/CD** | `.github/workflows/ci.yml` (jobs `lint`, `test`, `security`, `commits`, `dependency-review`, `build`, `ci-ok`, `release`), `codeql.yml`, `scorecard.yml`, `.github/actions/setup-poetry` |
 | **Dev tooling** | `Makefile`, `.pre-commit-config.yaml`, `pyproject.toml`, `poetry.lock`, `.vscode/` |
 
 ## Pontos de entrada
-- PRs para `main`, push, agendamento semanal e `workflow_dispatch` disparam o job `quality` (`make install`, `pre-commit`, `pytest`, `pip-audit`, `deptry`).
-- Push em `main` dispara `release` com `permissions: contents: write` e `semantic-release version`.
+- PRs para `main`, push, merge queue, agendamento semanal e `workflow_dispatch` disparam os jobs de qualidade (`make install`, `pre-commit`, `pytest`, `pip-audit`, `deptry`).
+- Push em `main` dispara `build` (sem permissão de escrita e sem cache, gera wheel/sdist/SBOM) e `release` (environment `release`, `contents: write`, `id-token: write`, `attestations: write`), que atesta a proveniência, cria tag/release e anexa os artefatos.
 - PRs automáticos de bump de dependências (histórico mostra `chore(deps)`).
 - Quem clona/usa o template executa `poetry install` e hooks locais.
 
@@ -28,9 +28,10 @@
 - Contribuidor externo abrindo PR malicioso (código executado no CI de `quality`).
 - Comprometimento de dependência PyPI ou de Action de terceiros (Actions fixadas por SHA de commit; hooks `pre-commit-hooks` ainda por tag).
 - Usuário do template (vítima downstream) — não atacante.
+- Agente de IA (local ou em CI) induzido por prompt injection vinda de issues, PRs, dependências ou páginas web a alterar workflows, enfraquecer gates ou vazar segredos.
 
 ## Controles existentes
-- Dependabot (`.github/dependabot.yml`) abre PRs de bump; `poetry.lock` fixa versões; `pip-audit` no CI, bloqueante, também em execução semanal agendada; token do workflow com `contents: read` por padrão (escrita só no job `release`); `persist-credentials: false` no job `quality`; Poetry fixado no CI; hooks `detect-private-key`, `check-added-large-files` e `check-merge-conflict`; `SECURITY.md` com canal privado de reporte; `deptry`; Ruff com `select = ["ALL"]` (inclui regras `S`/bandit); mypy; Commitizen.
+- Dependabot (`.github/dependabot.yml`) abre PRs de bump; `poetry.lock` fixa versões; `pip-audit` no CI, bloqueante, também em execução semanal agendada; token do workflow com `contents: read` por padrão (escrita só no job `release`); `persist-credentials: false` no job `quality`; Poetry fixado no CI; hooks `detect-private-key`, `check-added-large-files` e `check-merge-conflict`; `SECURITY.md` com canal privado de reporte; `permissions: {}` no topo dos workflows; zizmor e actionlint nos workflows (pre-commit/CI) e CodeQL para `actions`; dependency review em PRs; cooldown de 7 dias no Dependabot; build isolado do release (sem cache nem escrita); SBOM CycloneDX, SHA256SUMS e atestação SLSA de proveniência nos releases; job `ci-ok` agregado; validação de PR title/commits no CI; CODEOWNERS explícito para `.github/`, `pyproject.toml`, `poetry.lock`, `AGENTS.md`; `AGENTS.md` com regras para agentes de IA; `deptry`; Ruff com `select = ["ALL"]` (inclui regras `S`/bandit); mypy; Commitizen.
 - Gatilho `pull_request` (não `pull_request_target`): PRs de forks não recebem segredos nem token com escrita.
 
 ## Fora de escopo / risco aceito
