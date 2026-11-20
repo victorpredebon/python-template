@@ -73,7 +73,7 @@ finish with changed code, and blocks skipping git hooks, force pushes and pushes
 
 Quality-gate bypasses and gate configuration changes are detected in CI (`PR policy`
 workflow) and need a code owner to add the `allow-gate-change` label; agents can't approve
-their own bypass.
+their own bypass, and pushing new gate changes after approval removes the label.
 
 - Weaken a quality gate to make it pass: no new `# noqa`, `# type: ignore`, `pragma: no cover`,
   skipped/xfail tests, lowered coverage threshold or disabled rules without an explicit reason

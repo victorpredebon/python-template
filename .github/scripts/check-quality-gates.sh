@@ -2,9 +2,11 @@
 # Fails when a pull request adds ways to silence a quality gate (noqa, type: ignore,
 # skipped tests, ...) or changes gate configuration, unless a code owner approved it
 # by adding the override label. Agents must not be able to approve their own bypass,
-# so the label only counts when a human code owner (not a bot) added it.
+# so the label only counts when a human code owner (not a bot) added it, and a later
+# push that changes gates again revokes it (the label is removed).
 #
-# Env: BASE_SHA, HEAD_SHA (required); REPO, PR_NUMBER, GH_TOKEN (for the label check).
+# Env: BASE_SHA, HEAD_SHA (required); BEFORE_SHA (previous head, on new pushes);
+#      REPO, PR_NUMBER, GH_TOKEN (for the label check).
 set -euo pipefail
 
 : "${BASE_SHA:?}" "${HEAD_SHA:?}"
@@ -12,14 +14,17 @@ LABEL="${OVERRIDE_LABEL:-allow-gate-change}"
 
 # Added Python lines that silence a check.
 code_pattern='#[[:space:]]*(noqa|type:[[:space:]]*ignore|pyright:[[:space:]]*ignore)|pragma:[[:space:]]*no[[:space:]]*cover|pytest[.](mark[.](skip|skipif|xfail)|skip[(]|xfail[(]|importorskip[(])|unittest[.]skip'
-# Added or removed configuration lines that tune a gate (incl. quoted rule codes).
-config_pattern='fail_under|ignore|strict|select|disable|stages|exclude|omit|severity|continue-on-error|threshold|min[A-Z_]|layers|forbidden|"[A-Z]+[0-9]+"'
+# Added or removed configuration lines that tune a gate (incl. quoted rule codes)
+# or grant workflows write access.
+config_pattern='fail_under|ignore|strict|select|disable|stages|exclude|omit|severity|continue-on-error|threshold|min[A-Z_]|layers|forbidden|"[A-Z]+[0-9]+"|:[[:space:]]*write'
+config_paths=(pyproject.toml .pre-commit-config.yaml .github/zizmor.yml .github/workflows
+  .github/actions .jscpd.json sgconfig.yml rules)
 
-# Prints "path: line" for diff lines whose content matches the pattern.
+# Prints "path: line" for lines changed between two commits that match the pattern.
 scan() {
-  local pattern="$1" signs="$2"
-  shift 2
-  git diff --unified=0 --no-color "${BASE_SHA}" "${HEAD_SHA}" -- "$@" |
+  local from="$1" to="$2" pattern="$3" signs="$4"
+  shift 4
+  git diff --unified=0 --no-color "${from}" "${to}" -- "$@" |
     awk -v pattern="${pattern}" -v signs="${signs}" '
       /^\+\+\+ / { file = substr($0, 7); next }
       /^--- /    { next }
@@ -27,12 +32,18 @@ scan() {
     '
 }
 
-findings="$(
-  scan "${code_pattern}" '+' '*.py'
-  scan "${config_pattern}" '+-' pyproject.toml .pre-commit-config.yaml .github/zizmor.yml .github/workflows .github/actions .jscpd.json sgconfig.yml rules
-  # Deleting a project rule or its tests silently drops a check.
-  git diff --diff-filter=D --name-only "${BASE_SHA}" "${HEAD_SHA}" -- rules rule-tests | sed 's/^/deleted: /'
-)"
+# Prints every gate change between two commits.
+gate_changes() {
+  local from="$1" to="$2"
+  scan "${from}" "${to}" "${code_pattern}" '+' '*.py'
+  scan "${from}" "${to}" "${config_pattern}" '+-' "${config_paths[@]}"
+  # Deleting a project rule or its tests silently drops a check, and this script
+  # is the gate on all of the above.
+  git diff --diff-filter=D --name-only "${from}" "${to}" -- rules rule-tests | sed 's/^/deleted: /'
+  git diff --name-only "${from}" "${to}" -- .github/scripts/check-quality-gates.sh | sed 's/^/modified: /'
+}
+
+findings="$(gate_changes "${BASE_SHA}" "${HEAD_SHA}")"
 
 if [[ -z "${findings}" ]]; then
   echo "No quality-gate bypasses or gate configuration changes."
@@ -47,10 +58,31 @@ if [[ -z "${PR_NUMBER:-}" ]]; then
   exit 1
 fi
 
-# Who added the override label most recently, and is it still on the PR?
+has_label="$(gh api "repos/${REPO}/issues/${PR_NUMBER}/labels" --jq "any(.[]; .name == \"${LABEL}\")")"
+
+# An approval covers what the code owner saw. If this push changes gates again (or
+# rewrote history so we can't tell), revoke it so the new changes get reviewed.
+if [[ "${has_label}" == "true" && -n "${BEFORE_SHA:-}" ]]; then
+  if git cat-file -e "${BEFORE_SHA}^{commit}" 2> /dev/null; then
+    new_findings="$(gate_changes "${BEFORE_SHA}" "${HEAD_SHA}")"
+  else
+    new_findings="history rewritten: previous head ${BEFORE_SHA} is gone"
+  fi
+  if [[ -n "${new_findings}" ]]; then
+    echo "This push changes quality gates again:"
+    echo "${new_findings}"
+    if ! gh api --silent -X DELETE "repos/${REPO}/issues/${PR_NUMBER}/labels/${LABEL}"; then
+      echo "::error::Could not revoke the '${LABEL}' approval (read-only token, e.g. a fork PR). A code owner must remove and re-add the label after reviewing this push."
+      exit 1
+    fi
+    has_label=false
+    echo "::warning::Removed '${LABEL}': the approval did not cover this push."
+  fi
+fi
+
+# Who added the override label most recently?
 labeler="$(gh api --paginate "repos/${REPO}/issues/${PR_NUMBER}/events" \
   --jq ".[] | select(.event == \"labeled\" and .label.name == \"${LABEL}\") | \"\(.actor.login) \(.actor.type)\"" | tail -n 1)"
-has_label="$(gh api "repos/${REPO}/issues/${PR_NUMBER}/labels" --jq "any(.[]; .name == \"${LABEL}\")")"
 
 # Code owners come from the base branch, so the PR cannot add new approvers.
 # Without a CODEOWNERS file there, the repository owner is the only approver.

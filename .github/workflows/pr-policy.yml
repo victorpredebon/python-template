@@ -47,7 +47,7 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: read
-      issues: read        # label events
+      issues: write       # read label events; remove the approval label on new gate changes
       pull-requests: read # labels
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -59,6 +59,8 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # Previous head on a new push; empty for other events (label, title, ...).
+          BEFORE_SHA: ${{ github.event.action == 'synchronize' && github.event.before || '' }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}

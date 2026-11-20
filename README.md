@@ -201,7 +201,7 @@ Since `main` is protected (changes only via pull request), releases run with `--
 | Job | What it does |
 |-----|--------------|
 | **Conventional commits** | Validates the PR title (the squash-merge commit) and every commit with Commitizen |
-| **Quality-gate changes** | Fails if the PR adds `# noqa`, `# type: ignore`, `pragma: no cover`, skipped/xfail tests, or changes gate configuration (coverage threshold, Ruff/mypy rules, hook stages, workflow severities), unless a **human code owner** added the `allow-gate-change` label. Labels added by bots don't count, and code owners are read from the base branch, so an agent can't approve its own bypass. |
+| **Quality-gate changes** | Fails if the PR adds `# noqa`, `# type: ignore`, `pragma: no cover`, skipped/xfail tests, or changes gate configuration (coverage threshold, Ruff/mypy rules, hook stages, workflow severities), unless a **human code owner** added the `allow-gate-change` label. Labels added by bots don't count, and code owners are read from the base branch, so an agent can't approve its own bypass. The approval covers what was reviewed: a later push that changes gates again (or rewrites history) removes the label automatically. Changes to the checker script and new `write` permissions in workflows count as gate changes too. |
 
 It runs separately from `ci.yml` so editing the title or adding the label re-checks in seconds.
 
