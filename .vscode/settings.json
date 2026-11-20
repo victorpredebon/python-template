@@ -7,10 +7,6 @@
     "editor.defaultFormatter": "vscode.json-language-features",
     "editor.formatOnSave": true
   },
-  "[makefile]": {
-    "editor.defaultFormatter": "ms-vscode.makefile-tools",
-    "editor.formatOnSave": true
-  },
   "[python]": {
     "editor.codeActionsOnSave": {
       "source.fixAll": "explicit",
@@ -33,7 +29,7 @@
   "editor.defaultFormatter": "charliermarsh.ruff",
   "editor.formatOnSave": true,
   "python.testing.pytestArgs": [
-    "src"
+    "tests"
   ],
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false

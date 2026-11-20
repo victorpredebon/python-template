@@ -1,3 +1,8 @@
+# `make setup-pre-commit` (or plain `pre-commit install`) installs these git hooks.
+default_install_hook_types: [pre-push, commit-msg]
+# Hooks run on `git push` and on `pre-commit run` (the default stage, used by CI).
+default_stages: [pre-commit, pre-push, manual]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -7,20 +12,17 @@ repos:
       - id: pretty-format-json
         args: [--autofix]
       - id: check-toml
-      - id: sort-simple-yaml
       - id: check-yaml
       - id: check-json
       - id: check-illegal-windows-names
       - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: detect-private-key
       - id: name-tests-test
         args: [--pytest-test-first]
   - repo: local
     hooks:
-      - id: pyupgrade
-        name: pyupgrade
-        entry: poetry run pyupgrade --py314-plus
-        language: system
-        types: [python]
       - id: ruff
         name: ruff
         entry: poetry run ruff check --fix
@@ -33,9 +35,12 @@ repos:
         types: [python]
       - id: mypy
         name: mypy
-        entry: poetry run mypy --explicit-package-bases
+        # Checks the whole project (paths in [tool.mypy] files) so cross-module
+        # errors are not missed when only some files changed.
+        entry: poetry run mypy
         language: system
         types: [python]
+        pass_filenames: false
       - id: commitizen
         name: commitizen
         entry: poetry run cz check --commit-msg-file
@@ -43,7 +48,7 @@ repos:
         stages: [commit-msg]
       - id: pip-audit
         name: pip-audit
-        entry: poetry run pip-audit
+        entry: poetry run pip-audit --skip-editable
         language: system
         pass_filenames: false
         stages: [manual]

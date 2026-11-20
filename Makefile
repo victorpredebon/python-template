@@ -1,4 +1,4 @@
-.PHONY: help install tests coverage pre-commit setup-pre-commit pre-commit-autoupdate audit release clean
+.PHONY: help install run lint format typecheck tests coverage audit deps check pre-commit setup-pre-commit pre-commit-update release clean
 
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "} ; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -6,25 +6,45 @@ help: ## Display this help message
 install: ## Install dependencies
 	poetry install
 
+run: ## Run the application
+	poetry run calculator
+
+lint: ## Lint code (no auto-fix)
+	poetry run ruff check --no-fix
+	poetry run ruff format --check
+
+format: ## Auto-fix lint issues and format code
+	poetry run ruff check --fix
+	poetry run ruff format
+
+typecheck: ## Run static type checking
+	poetry run mypy
+
 tests: ## Run tests in parallel
 	poetry run pytest -n auto
 
-coverage: ## Run tests with coverage
-	poetry run pytest --cov=calculator --cov-report=term-missing --cov-report=html --cov-fail-under=80
+coverage: ## Run tests with coverage (threshold in pyproject.toml)
+	poetry run pytest -n auto --cov --cov-report=term-missing --cov-report=html
+
+audit: ## Scan dependencies for known vulnerabilities
+	poetry run pip-audit --skip-editable
+
+deps: ## Check for unused, missing and transitive dependencies
+	poetry run deptry .
+
+check: lint typecheck coverage audit deps ## Run every quality gate (same as CI)
 
 pre-commit: ## Run pre-commit
 	poetry run pre-commit run --all-files
 
-setup-pre-commit: ## Setup pre-commit
-	poetry run pre-commit install --hook-type commit-msg --hook-type pre-push
+setup-pre-commit: ## Install git hooks (pre-push + commit-msg)
+	poetry run pre-commit install
 
 pre-commit-update: ## Update pre-commit hooks
 	poetry run pre-commit autoupdate
 
-audit: ## Scan dependencies for known vulnerabilities
-	poetry run pip-audit
-
 release: ## Bump version, update CHANGELOG and tag locally (no push)
+	poetry install --with release
 	poetry run semantic-release version --no-push --no-vcs-release
 
 clean: ## Clean build artifacts and caches
