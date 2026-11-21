@@ -1,0 +1,26 @@
+id: no-hardcoded-api-keys
+language: python
+severity: error
+message: Don't hardcode API keys; read them from the environment or a secret store at the entry point.
+note: >-
+  A key in the source is in every clone, fork, wheel and log of the repository, and
+  rotating it means a code change. Ruff's S105/S106 catch `password=` and `token=` but not
+  `api_key=` or provider key formats. Tests may pass obviously fake keys (`api_key='test'`),
+  never strings in a real provider's format.
+rule:
+  any:
+    # A string in a known provider key format: OpenAI/Anthropic/Stripe (sk-, rk_), GitHub
+    # (ghp_, github_pat_), Slack (xox?-), AWS (AKIA/ASIA), Google (AIza), Hugging Face (hf_).
+    - kind: string_content
+      regex: ^(sk-|sk_live_|rk_live_|ghp_|gho_|ghs_|github_pat_|xox[abposr]-|AKIA|ASIA|AIza|hf_|glpat-)[A-Za-z0-9_-]{12,}$
+    # Any literal passed as `api_key=` outside a test.
+    - kind: keyword_argument
+      all:
+        - has:
+            field: name
+            regex: (?i)^api_?key$
+        - has:
+            field: value
+            kind: string
+      not:
+        matches: in-test

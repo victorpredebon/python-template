@@ -36,7 +36,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 🔐 **Hardened CI/CD** | Actions pinned by SHA, least-privilege tokens, zizmor + actionlint + CodeQL on the workflows, OpenSSF Scorecard, dependency review, Dependabot cooldown |
 | 📦 **Signed releases** | Wheel + sdist built in an unprivileged job, smoke-tested, with CycloneDX SBOM, checksums and SLSA build provenance attached to every GitHub release |
 | 🤖 **Any coding agent** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, Gemini CLI, Jules, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
-| 🏛️ **Deterministic design checks** | import-linter architecture contracts, vulture (dead code), jscpd (duplication), diff-cover (100% on changed lines) and 16 generic ast-grep rules (tests, error handling, logging, types, data structures) |
+| 🏛️ **Deterministic design checks** | import-linter architecture contracts, vulture (dead code), jscpd (duplication), diff-cover (100% on changed lines) and 18 generic ast-grep rules (tests, security, error handling, logging, types, data structures) |
 | 🧬 **Hypothesis + mutmut** | Property-based tests for edge cases, and mutation testing that proves tests notice when code is wrong (coverage alone doesn't) |
 | 🛂 **Gate-bypass detection** | Suppression comments (`noqa`, `type: ignore`, `ast-grep-ignore`, `pragma: no cover`) are banned outright; skipped tests and gate config changes need a code owner's `allow-gate-change` label |
 | 🧑‍⚖️ **Independent AI review** | Optional Claude reviewer (read-only, comments only) focused on bugs, unneeded code and weak tests |
@@ -235,6 +235,8 @@ ast-grep rules (generic Python practices that Ruff doesn't cover). They find the
 | Tests | `no-weak-test-assertions` | `is not None` / `isinstance` / `len(x) > 0` pass for almost any wrong result |
 | Tests | `mock-requires-spec` | Mocks without `autospec`/`spec` accept calls the real object would reject ([unittest.mock docs](https://docs.python.org/3/library/unittest.mock.html#autospeccing)) |
 | Tests | `no-sleep-in-tests` | Sleeps make tests slow and flaky |
+| Security | `no-secrets-in-logs` | API keys, tokens and passwords must never reach logs, which end up in CI output, aggregators and LLM traces ([OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html)) |
+| Security | `no-hardcoded-api-keys` | Provider key formats (`sk-`, `ghp_`, `AKIA`, `hf_`, ...) and literal `api_key=` arguments: Ruff's S105/S106 only cover `password`/`token` names |
 | Errors | `no-swallowed-exceptions` | "Errors should never pass silently" ([PEP 20](https://peps.python.org/pep-0020/)); only the entry point may log and stop |
 | Errors | `exit-only-in-main` | Code below the entry point raises; only `main` exits the process |
 | Completeness | `no-stub-implementations` | `pass` / `...` / `NotImplementedError` bodies outside `@abstractmethod`, `@overload` and `Protocol` |

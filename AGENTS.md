@@ -92,7 +92,7 @@ Never rely on a hook: CI enforces every rule.
   use the network (pytest-socket): replace HTTP clients and LLM APIs with fakes.
 - **Architecture:** module dependencies follow the import-linter contracts in
   `pyproject.toml` (`calc` is pure logic; only `cli` does I/O). Add a contract when you add a layer.
-- **Patterns:** generic best practices live as ast-grep rules in `rules/` (tests, error
+- **Patterns:** generic best practices live as ast-grep rules in `rules/` (tests, secrets, error
   handling, logging, types, data structures such as `deque`, `Counter`, `defaultdict`),
   each with examples in `rule-tests/`. Rules use code context (`rule-utils/`), never file
   paths. When review finds a pattern worth enforcing, propose a rule instead of a comment.
