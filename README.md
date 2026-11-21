@@ -40,7 +40,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 🧬 **Hypothesis + mutmut** | Property-based tests for edge cases, and mutation testing that proves tests notice when code is wrong (coverage alone doesn't) |
 | 🛂 **Gate-bypass detection** | Suppression comments (`noqa`, `type: ignore`, `ast-grep-ignore`, `pragma: no cover`) are banned outright; skipped tests and gate config changes need a code owner's `allow-gate-change` label |
 | 🧑‍⚖️ **Independent AI review** | Optional Claude reviewer (read-only, comments only) focused on bugs, unneeded code and weak tests |
-| 🪝 **Claude Code hooks** | `.claude/settings.json` runs the gates before an agent finishes and blocks skipping hooks / force pushes |
+| 🪝 **Claude Code hooks** | `.claude/settings.json` installs dependencies at session start (also in cloud sessions), lints every file the agent edits, runs the gates before it finishes and blocks skipping hooks / force pushes |
 
 ---
 
@@ -303,7 +303,7 @@ python-template/
 ├── rules/ + rule-tests/      # ast-grep rules and their tests (sgconfig.yml)
 ├── rule-utils/               # Shared ast-grep contexts: in a test, in the entry point
 ├── .jscpd.json               # Duplicated-code detection
-├── .claude/                  # Claude Code settings and hooks (guard + quality gates)
+├── .claude/                  # Claude Code settings and hooks (setup, lint, guard, gates)
 ├── AGENTS.md                 # Instructions for AI coding agents (CLAUDE.md imports it)
 ├── SECURITY.md               # How to report vulnerabilities
 └── Makefile                  # Dev commands
@@ -343,7 +343,7 @@ They have separate jobs: Commitizen only validates commit messages locally (`com
 **How do AI coding agents fit in?**
 `AGENTS.md` is the shared instruction file most agents read automatically (`CLAUDE.md` just imports it). It lists the commands, conventions and things an agent must never do (weaken gates, touch workflows as a side effect, pin Actions by tag). Nothing relies on the agent obeying, though: every rule that matters is enforced by CI, CODEOWNERS and the branch ruleset, and the PR template asks authors to disclose AI assistance.
 
-In Claude Code, `.claude/settings.json` adds local guardrails: a Stop hook runs lint, mypy and tests whenever the agent tries to finish with changed code (failures go back to the agent); a PreToolUse hook blocks git commands that skip hooks, force pushes and pushes to `main`; editing `.github/`, `.claude/` and `AGENTS.md` asks for confirmation; and `.env`/key files can't be read. Personal overrides go in `.claude/settings.local.json` (git-ignored).
+In Claude Code, `.claude/settings.json` adds local guardrails: a SessionStart hook runs `uv sync --locked`, so even a fresh cloud session (Claude Code on the web) has the tools ready; a PostToolUse hook runs `ruff check --fix` and `ruff format` on each Python file the agent edits and sends back what Ruff can't fix, so mistakes are corrected at once rather than at the end; a Stop hook runs lint, mypy and tests whenever the agent tries to finish with changed code (failures go back to the agent); a PreToolUse hook blocks git commands that skip hooks, force pushes and pushes to `main`; editing `.github/`, `.claude/` and `AGENTS.md` asks for confirmation; and `.env`/key files can't be read. Personal overrides go in `.claude/settings.local.json` (git-ignored).
 
 **Does it publish to PyPI?**
 No, packages are attached to GitHub releases. To publish to PyPI, add a job after **Release** that downloads the `dist` artifact and runs `pypa/gh-action-pypi-publish` with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC, no API token).

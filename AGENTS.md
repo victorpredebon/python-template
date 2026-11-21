@@ -25,8 +25,10 @@ make run         # run the app
 ```
 
 Always run `make check` before declaring a task done, and report its real result.
-In Claude Code, `.claude/settings.json` runs the fast gates automatically when you try to
-finish with changed code, and blocks skipping git hooks, force pushes and pushes to `main`.
+In Claude Code, `.claude/settings.json` installs the dependencies when a session starts,
+runs Ruff on every Python file you edit (fix what it reports right away), runs the fast gates
+automatically when you try to finish with changed code, and blocks skipping git hooks, force
+pushes and pushes to `main`.
 
 ## How to work
 
