@@ -1,0 +1,9 @@
+id: no-unordered-dedupe
+language: python
+severity: error
+message: list(set(...)) loses the order; use list(dict.fromkeys(...)) or sorted(set(...)).
+note: >-
+  Set iteration order is arbitrary for many types (and varies between runs for strings
+  with hash randomization), so results, output and tests become unstable.
+rule:
+  pattern: list(set($X))

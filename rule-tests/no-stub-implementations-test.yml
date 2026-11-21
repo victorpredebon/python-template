@@ -1,0 +1,28 @@
+id: no-stub-implementations
+valid:
+  - |
+    def total(values: list[int]) -> int:
+        return sum(values)
+  - |
+    class Shape(ABC):
+        @abstractmethod
+        def area(self) -> float:
+            raise NotImplementedError
+  - |
+    class Reader(Protocol):
+        def read(self) -> bytes: ...
+  - |
+    @overload
+    def parse(value: str) -> int: ...
+invalid:
+  - |
+    def total(values: list[int]) -> int:
+        pass
+  - |
+    def total(values: list[int]) -> int:
+        """Sum the values."""
+        ...
+  - |
+    def total(values: list[int]) -> int:
+        # TODO: implement
+        raise NotImplementedError('later')

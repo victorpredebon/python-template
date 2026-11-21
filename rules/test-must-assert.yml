@@ -5,7 +5,6 @@ message: Test function never asserts anything.
 note: >-
   A test that only runs code passes even when the result is wrong. Assert on the
   behavior (or use pytest.raises / pytest.warns).
-files: ["tests/**"]
 rule:
   kind: function_definition
   has:

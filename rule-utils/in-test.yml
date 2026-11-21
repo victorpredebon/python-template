@@ -1,0 +1,10 @@
+# Inside a pytest test function (named test_*).
+id: in-test
+language: python
+rule:
+  inside:
+    stopBy: end
+    kind: function_definition
+    has:
+      field: name
+      regex: ^test_

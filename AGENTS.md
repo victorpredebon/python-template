@@ -62,8 +62,10 @@ finish with changed code, and blocks skipping git hooks, force pushes and pushes
   Prefer property-based tests (Hypothesis) for pure functions.
 - **Architecture:** module dependencies follow the import-linter contracts in
   `pyproject.toml` (`calc` is pure logic; only `cli` does I/O). Add a contract when you add a layer.
-- **Project patterns:** live as ast-grep rules in `rules/`, each with examples in `rule-tests/`.
-  When review finds a pattern worth enforcing, propose a rule instead of a comment in AGENTS.md.
+- **Patterns:** generic best practices live as ast-grep rules in `rules/` (tests, error
+  handling, logging, types, data structures such as `deque`, `Counter`, `defaultdict`),
+  each with examples in `rule-tests/`. Rules use code context (`rule-utils/`), never file
+  paths. When review finds a pattern worth enforcing, propose a rule instead of a comment.
 - **No dead or duplicated code:** vulture and jscpd fail on unused definitions and copy-paste.
   Every changed line must be covered by tests (`make diff-cover`).
 - **Dependencies:** add them with `poetry add` (runtime) or `poetry add --group dev` and commit

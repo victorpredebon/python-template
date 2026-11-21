@@ -36,7 +36,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 🔐 **Hardened CI/CD** | Actions pinned by SHA, least-privilege tokens, zizmor + actionlint + CodeQL on the workflows, OpenSSF Scorecard, dependency review, Dependabot cooldown |
 | 📦 **Signed releases** | Wheel + sdist built in an unprivileged job, smoke-tested, with CycloneDX SBOM, checksums and SLSA build provenance attached to every GitHub release |
 | 🤖 **AI-agent ready** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
-| 🏛️ **Deterministic design checks** | import-linter architecture contracts, vulture (dead code), jscpd (duplication), diff-cover (100% on changed lines) and project-specific ast-grep rules |
+| 🏛️ **Deterministic design checks** | import-linter architecture contracts, vulture (dead code), jscpd (duplication), diff-cover (100% on changed lines) and 16 generic ast-grep rules (tests, error handling, logging, types, data structures) |
 | 🧬 **Hypothesis + mutmut** | Property-based tests for edge cases, and mutation testing that proves tests notice when code is wrong (coverage alone doesn't) |
 | 🛂 **Gate-bypass detection** | New `noqa`, `type: ignore`, skipped tests or gate config changes need a code owner's `allow-gate-change` label |
 | 🧑‍⚖️ **Independent AI review** | Optional Claude reviewer (read-only, comments only) focused on bugs, unneeded code and weak tests |
@@ -223,17 +223,30 @@ Rules an AI agent can be *asked* to follow are enforced by tools instead, so the
 | Dead code | vulture | `[tool.vulture]` |
 | Copy-paste (also within one file) | jscpd | `.jscpd.json` |
 | New code without tests | diff-cover (100% of changed lines) | `[tool.diff_cover]` |
-| Project-specific patterns | ast-grep | `rules/` + `rule-tests/` |
+| Python best practices Ruff lacks | ast-grep | `rules/` + `rule-tests/` + `rule-utils/` |
 
-Starter ast-grep rules (each with valid/invalid examples tested by `ast-grep test`):
+ast-grep rules (generic Python practices that Ruff doesn't cover). They find their context from the code, never from file paths: a test is a `test_*` function, the entry point is a `main` function or the `if __name__ == '__main__':` block (shared in `rule-utils/`). Each rule has valid and invalid examples checked by `ast-grep test`.
 
-| Rule | Why |
-|------|-----|
-| `test-must-assert` | A test that only runs code passes even when the result is wrong |
-| `no-sleep-in-tests` | Sleeps make tests slow and flaky |
-| `logger-uses-module-name` | `getLogger(__name__)` keeps logging configurable per module |
-| `logging-config-only-in-entrypoint` | Library code must not override the app's logging setup |
-| `exit-only-in-entrypoint` | Library code raises; only `cli.py` / `__main__.py` exit the process |
+| Area | Rule | Why |
+|------|------|-----|
+| Tests | `test-must-assert` | A test that only runs code passes even when the result is wrong |
+| Tests | `no-weak-test-assertions` | `is not None` / `isinstance` / `len(x) > 0` pass for almost any wrong result |
+| Tests | `mock-requires-spec` | Mocks without `autospec`/`spec` accept calls the real object would reject ([unittest.mock docs](https://docs.python.org/3/library/unittest.mock.html#autospeccing)) |
+| Tests | `no-sleep-in-tests` | Sleeps make tests slow and flaky |
+| Errors | `no-swallowed-exceptions` | "Errors should never pass silently" ([PEP 20](https://peps.python.org/pep-0020/)); only the entry point may log and stop |
+| Errors | `exit-only-in-main` | Code below the entry point raises; only `main` exits the process |
+| Completeness | `no-stub-implementations` | `pass` / `...` / `NotImplementedError` bodies outside `@abstractmethod`, `@overload` and `Protocol` |
+| Logging | `logger-uses-module-name` | `getLogger(__name__)` ([logging HOWTO](https://docs.python.org/3/howto/logging.html)) |
+| Logging | `logging-config-only-in-main` | Libraries must not configure logging |
+| Types | `no-untyped-dict-in-signatures` | `dict[str, Any]` in signatures → `TypedDict` / `dataclass` |
+| Time | `no-wall-clock-durations` | Durations with `time.monotonic()` / `perf_counter()`, not `time.time()` |
+| Data structures | `use-deque-for-queues` | `pop(0)` / `insert(0, x)` on a list are O(n); `deque` is O(1) |
+| Data structures | `use-counter` | `collections.Counter` instead of manual get-and-increment |
+| Data structures | `use-defaultdict` | `defaultdict` / `setdefault` instead of initializing missing keys by hand |
+| Data structures | `no-large-tuple-returns` | 4+ returned values → `NamedTuple` / `dataclass` (*Effective Python*) |
+| Data structures | `no-unordered-dedupe` | `list(set(x))` loses order → `list(dict.fromkeys(x))` or `sorted(set(x))` |
+
+Ruff also has the preview rule `PLR6201` enabled on its own (`explicit-preview-rules`): use a `set` literal for membership tests. Data-structure checks Ruff already covers stay with Ruff (e.g. `namedtuple` → `typing.NamedTuple`, `sorted(x)[0]` → `min(x)`).
 
 Changing these configurations, or deleting a rule or its tests, is a gate change: the PR policy requires the `allow-gate-change` label from a code owner.
 
@@ -288,7 +301,8 @@ python-template/
 ├── poetry.toml               # Poetry settings (virtualenv created inside project)
 ├── poetry.lock               # Pinned dependencies
 ├── .pre-commit-config.yaml   # Pre-commit hooks
-├── rules/ + rule-tests/      # ast-grep project rules and their tests (sgconfig.yml)
+├── rules/ + rule-tests/      # ast-grep rules and their tests (sgconfig.yml)
+├── rule-utils/               # Shared ast-grep contexts: in a test, in the entry point
 ├── .jscpd.json               # Duplicated-code detection
 ├── .claude/                  # Claude Code settings and hooks (guard + quality gates)
 ├── AGENTS.md                 # Instructions for AI coding agents (CLAUDE.md imports it)

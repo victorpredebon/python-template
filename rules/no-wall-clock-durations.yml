@@ -1,0 +1,14 @@
+id: no-wall-clock-durations
+language: python
+severity: error
+message: Measure durations with time.monotonic() or time.perf_counter(), not time.time().
+note: >-
+  time.time() follows the system clock, which can jump (NTP, manual changes, DST
+  handling), giving negative or wrong durations. The time module docs recommend
+  monotonic() for elapsed time and perf_counter() for benchmarks.
+rule:
+  any:
+    - pattern: time.time() - $X
+    - pattern: $X - time.time()
+    - pattern: time() - $X
+    - pattern: $X - time()

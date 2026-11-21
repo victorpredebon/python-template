@@ -1,6 +1,9 @@
-# ast-grep: project-specific code patterns that Ruff can't express.
+# ast-grep: generic Python best practices that Ruff doesn't cover.
 # `ast-grep scan` checks the code, `ast-grep test` checks the rules themselves.
+# Rules find their context from the code itself (test functions, the entry point),
+# never from file paths, so they work in any project layout.
 # Every rule in rules/ needs valid and invalid examples in rule-tests/.
 ruleDirs: [rules]
+utilDirs: [rule-utils]
 testConfigs:
   - testDir: rule-tests

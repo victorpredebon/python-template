@@ -1,0 +1,32 @@
+id: no-weak-test-assertions
+language: python
+severity: error
+message: Test only makes weak assertions; assert the expected value.
+note: >-
+  Checking that something is not None, has some type or is non-empty passes for almost
+  any wrong result. Compare against the expected value (==), or use pytest.raises.
+rule:
+  kind: function_definition
+  all:
+    - has:
+        field: name
+        regex: ^test_
+    - has:
+        stopBy: end
+        kind: assert_statement
+    - not:
+        has:
+          stopBy: end
+          any:
+            - pattern: pytest.raises($$$)
+            - pattern: pytest.warns($$$)
+            - kind: assert_statement
+              not:
+                any:
+                  - pattern: assert $X is not None
+                  - pattern: assert $X is not None, $MSG
+                  - pattern: assert isinstance($$$)
+                  - pattern: assert isinstance($$$), $MSG
+                  - pattern: assert len($X) > 0
+                  - pattern: assert len($X) != 0
+                  - pattern: assert len($X) >= 1

@@ -1,7 +1,0 @@
-id: logging-config-only-in-entrypoint
-valid:
-  - logger.info('hello')
-invalid:
-  - basicConfig(level='INFO')
-  - logging.basicConfig(level=logging.DEBUG)
-  - logging.config.dictConfig(CONFIG)

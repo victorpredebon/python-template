@@ -1,0 +1,11 @@
+id: use-deque-for-queues
+language: python
+severity: error
+message: Use collections.deque to add or remove items at the front.
+note: >-
+  list.pop(0) and list.insert(0, x) move every other element (O(n)). A deque does both
+  ends in O(1); the Python docs recommend it for queues.
+rule:
+  any:
+    - pattern: $L.pop(0)
+    - pattern: $L.insert(0, $X)

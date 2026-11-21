@@ -1,0 +1,50 @@
+id: no-swallowed-exceptions
+valid:
+  - |
+    try:
+        value = cache[key]
+    except KeyError:
+        value = compute(key)
+  - |
+    try:
+        connect()
+    except OSError:
+        logger.exception('connection failed')
+        raise
+  - |
+    try:
+        connect()
+    except OSError as error:
+        raise ServiceUnavailableError from error
+  - |
+    def main() -> int:
+        try:
+            run()
+        except AppError:
+            logger.exception('fatal')
+            return 1
+        return 0
+invalid:
+  - |
+    try:
+        connect()
+    except OSError:
+        pass
+  - |
+    try:
+        connect()
+    except OSError:
+        logger.warning('connection failed')
+  - |
+    def load(path: str) -> Config | None:
+        try:
+            return parse(path)
+        except ValueError:
+            return None
+  - |
+    for item in items:
+        try:
+            handle(item)
+        except ValueError:
+            # skip bad items
+            continue

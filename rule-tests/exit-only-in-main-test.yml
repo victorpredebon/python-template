@@ -1,0 +1,19 @@
+id: exit-only-in-main
+valid:
+  - |
+    def main() -> int:
+        sys.exit(run())
+  - |
+    if __name__ == "__main__":
+        sys.exit(main())
+  - raise ValueError('invalid input')
+invalid:
+  - |
+    def parse(text: str) -> int:
+        if not text:
+            sys.exit(1)
+        return int(text)
+  - |
+    def stop() -> None:
+        raise SystemExit(2)
+  - os._exit(1)

@@ -1,0 +1,7 @@
+id: no-unordered-dedupe
+valid:
+  - unique = list(dict.fromkeys(items))
+  - unique = sorted(set(items))
+  - unique = set(items)
+invalid:
+  - unique = list(set(items))

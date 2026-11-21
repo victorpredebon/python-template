@@ -1,0 +1,39 @@
+id: no-stub-implementations
+language: python
+severity: error
+message: Function has no implementation.
+note: >-
+  A body of only pass, ..., a docstring or raise NotImplementedError type-checks but
+  does nothing. NotImplementedError is for abstract methods; mark those with
+  @abstractmethod, use @overload for overload signatures, or a Protocol for interfaces.
+rule:
+  kind: function_definition
+  has:
+    field: body
+    not:
+      has:
+        not:
+          any:
+            - kind: comment
+            - kind: pass_statement
+            - kind: expression_statement
+              has:
+                kind: ellipsis
+            - kind: expression_statement
+              has:
+                kind: string
+            - pattern: raise NotImplementedError
+            - pattern: raise NotImplementedError($$$)
+  not:
+    any:
+      - inside:
+          kind: decorated_definition
+          has:
+            kind: decorator
+            regex: abstractmethod|overload
+      - inside:
+          stopBy: end
+          kind: class_definition
+          has:
+            field: superclasses
+            regex: \bProtocol\b

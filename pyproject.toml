@@ -73,6 +73,11 @@ fix = true
 
 [tool.ruff.lint]
 select = ["ALL"]
+# Opt into single preview rules by exact code only (explicit-preview-rules), so no
+# other preview rule turns on: PLR6201 = use a set literal for membership tests.
+preview = true
+explicit-preview-rules = true
+extend-select = ["PLR6201"]
 ignore = [
   "D",   # pydocstyle (D)
   "COM", # flake8-commas (COM)
@@ -148,7 +153,8 @@ forbidden_modules = ["logging", "os", "sys", "subprocess", "pathlib", "socket"]
 
 # Dead code: functions, classes and attributes nothing uses.
 [tool.vulture]
-paths = ["src", "tests", ".claude/hooks"]
+paths = ["."]
+exclude = [".venv/", "mutants/", "build/", "dist/", ".git/"]
 
 
 # Duplicated code (copy-paste, also within one file): jscpd, configured in .jscpd.json.

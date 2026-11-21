@@ -3,7 +3,13 @@ valid:
   - |
     def test_fast(clock: FakeClock) -> None:
         clock.advance(5)
+  - |
+    def retry() -> None:
+        time.sleep(1)
 invalid:
-  - time.sleep(1)
-  - sleep(0.1)
-  - await asyncio.sleep(1)
+  - |
+    def test_slow() -> None:
+        time.sleep(1)
+  - |
+    async def test_async() -> None:
+        await asyncio.sleep(0.1)

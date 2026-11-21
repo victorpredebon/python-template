@@ -1,7 +1,0 @@
-id: exit-only-in-entrypoint
-valid:
-  - raise ValueError('invalid input')
-invalid:
-  - sys.exit(1)
-  - exit(0)
-  - os._exit(1)

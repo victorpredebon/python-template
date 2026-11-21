@@ -1,0 +1,23 @@
+id: no-weak-test-assertions
+valid:
+  - |
+    def test_parse() -> None:
+        result = parse('1')
+        assert result is not None
+        assert result == 1
+  - |
+    def test_rejects_empty() -> None:
+        with pytest.raises(ValueError, match='empty'):
+            parse('')
+  - |
+    def helper(result: object) -> None:
+        assert result is not None
+invalid:
+  - |
+    def test_parse() -> None:
+        assert parse('1') is not None
+  - |
+    def test_load() -> None:
+        config = load()
+        assert isinstance(config, Config)
+        assert len(config.items) > 0

@@ -1,0 +1,16 @@
+id: no-large-tuple-returns
+language: python
+severity: error
+message: Return a NamedTuple or dataclass instead of four or more bare values.
+note: >-
+  Callers must unpack positionally and keep the order right; adding a field breaks
+  every call site. "Never unpack more than three variables when functions return
+  multiple values" (Effective Python).
+rule:
+  kind: return_statement
+  has:
+    any:
+      - kind: expression_list
+      - kind: tuple
+    has:
+      nthChild: 4

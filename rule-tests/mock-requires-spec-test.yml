@@ -1,0 +1,17 @@
+id: mock-requires-spec
+valid:
+  - |
+    @patch('app.client.fetch', autospec=True)
+    def test_fetch(fetch: MagicMock) -> None:
+        assert run() == 1
+  - client = Mock(spec=Client)
+  - patch.object(Client, 'fetch', new=fake_fetch)
+  - "patch.dict(os.environ, {'DEBUG': '1'})"
+  - requests.patch(url, json=body)
+invalid:
+  - |
+    @patch('app.client.fetch')
+    def test_fetch(fetch: MagicMock) -> None:
+        assert run() == 1
+  - client = MagicMock()
+  - mocker.patch.object(Client, 'fetch', return_value=1)
