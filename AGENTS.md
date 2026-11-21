@@ -5,11 +5,11 @@ repository. Humans should follow them too. Read this file before changing anythi
 
 ## Project
 
-Python 3.14 template managed with [uv](https://docs.astral.sh/uv/). Installable `src/` layout:
+Python template (3.12+, developed on 3.14) managed with [uv](https://docs.astral.sh/uv/). Installable `src/` layout:
 
 - `src/calculator/` — the package (`cli.py` is the `calculator` console entry point)
 - `tests/` — pytest suite (`test_*.py`, mirrors the package)
-- `.github/workflows/ci.yml` — CI/CD: lint, tests (Linux/Windows/macOS), audit, build, release
+- `.github/workflows/ci.yml` — CI/CD: lint, tests (Python 3.12–3.14, Linux/Windows/macOS), audit, build, release
 - `pyproject.toml` — single source of configuration (deps, ruff, mypy, pytest, coverage, release)
 
 ## Commands

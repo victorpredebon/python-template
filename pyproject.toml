@@ -6,7 +6,7 @@ authors = [{ name = "Victor Predebon", email = "predebonvictor@gmail.com" }]
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.14,<4"
+requires-python = ">=3.12,<4"
 dependencies = []
 keywords = ["template", "boilerplate", "uv", "ruff", "mypy"]
 classifiers = [
@@ -15,6 +15,8 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
   "Typing :: Typed",
 ]
@@ -71,7 +73,8 @@ module-name = "calculator"
 [tool.ruff]
 line-length = 88
 indent-width = 4
-target-version = "py314"
+# The oldest supported Python (requires-python), so code stays compatible with it.
+target-version = "py312"
 fix = true
 
 
@@ -171,6 +174,8 @@ fail_under = 100
 
 
 [tool.mypy]
+# Type-check against the oldest supported Python; CI runs the tests on every version.
+python_version = "3.12"
 mypy_path = "src"
 files = ["src", "tests", ".claude/hooks"]
 strict = true

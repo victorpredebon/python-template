@@ -6,7 +6,7 @@
 
 Scaffold production-ready Python projects in seconds. Clone, run `make install`, and start shipping — linting, formatting, type checking, testing, and commit conventions already wired up.
 
-[![Python Version](https://img.shields.io/badge/python-3.14+-blue.svg)](https://python.org)
+[![Python Version](https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Linting: Ruff](https://img.shields.io/badge/linting-ruff-yellow)](https://github.com/astral-sh/ruff)
 [![Formatting: Ruff](https://img.shields.io/badge/formatting-ruff-black)](https://github.com/astral-sh/ruff)
@@ -23,7 +23,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 
 | Tool | Purpose |
 |------|---------|
-| 🐍 **Python 3.14+** | Latest stable Python; Ruff's `UP` rules keep syntax modern |
+| 🐍 **Python 3.12 – 3.14** | Developed on 3.14, tested on every supported version; Ruff and mypy target the oldest so code stays compatible |
 | 📦 **uv** | One fast tool for Python versions, virtualenvs and a cross-platform lockfile (`uv.lock`), with PEP 735 dependency groups, the `uv_build` backend and a 7-day cooldown on new releases (`exclude-newer`) |
 | ⚡ **Ruff** | Blazing-fast linter and formatter — replaces `flake8`, `isort`, and `black` in one tool |
 | 🔍 **MyPy** | Strict static type checking and type safety enforcement |
@@ -174,7 +174,7 @@ Runs on pull requests, pushes to `main`, the merge queue, weekly (to catch new C
 | Job | When | What it does |
 |-----|------|--------------|
 | **Lint & type-check** | always | pre-commit: Ruff, mypy, actionlint, zizmor, file checks |
-| **Test** | always | pytest on Linux, Windows and macOS; coverage gate; on PRs, 100% coverage of changed lines (diff-cover); JUnit/coverage reports as artifacts and in the job summary |
+| **Test** | always | pytest on Python 3.12, 3.13 and 3.14 (Linux) and on Windows and macOS; coverage gate; on PRs, 100% coverage of changed lines (diff-cover); JUnit/coverage reports as artifacts and in the job summary |
 | **Dependency audit** | always | `pip-audit` (blocking) and `deptry` |
 | **Dependency review** | PRs | Blocks PRs that add dependencies with known vulnerabilities (moderate+) |
 | **Build package** | always | Plans the next version, builds sdist + wheel with `uv build`, `twine check --strict`, smoke-tests the wheel in a clean venv, generates a CycloneDX SBOM and `SHA256SUMS.txt` |
@@ -322,8 +322,8 @@ python-template/
 **Why uv instead of Poetry or pip?**
 uv replaces pip, venv, pyenv and Poetry with one tool that is 10-100x faster. It installs the right Python by itself, its lockfile is cross-platform, and it handles hard cases such as PyTorch CPU/CUDA indexes (`[tool.uv.sources]`). Without uv, `pip install -e . --group dev` (pip 25.1+) works, but without the lockfile guarantees.
 
-**Why Python 3.14?**
-Targets the latest stable Python for best performance and modern language features. To downgrade, edit `.python-version`, plus `requires-python` and `target-version` in `pyproject.toml`.
+**Which Python versions are supported?**
+3.12 to 3.14. You develop on the version in `.python-version` (3.14); CI runs the tests on every supported version, and Ruff and mypy target the oldest one (3.12), so you can't use syntax it lacks by accident. Many ML/AI libraries support a new Python months after its release, so a range is safer than "latest only". An application that only ever runs on one version can narrow `requires-python`, `target-version`, `python_version` and the CI matrix to it.
 
 **Can I use this as a cookiecutter alternative?**
 Yes. Use the GitHub template button to scaffold a new repo instantly, or pull via Git. There's no generator step — the structure is ready to rename and adapt.

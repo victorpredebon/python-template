@@ -44,15 +44,22 @@ jobs:
         run: uv run pre-commit run --all-files --show-diff-on-failure
 
   test:
-    name: Test (${{ matrix.os }})
+    name: Test (${{ matrix.os }}, Python ${{ matrix.python }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     permissions:
       contents: read
     strategy:
       fail-fast: false
+      # Every supported Python on Linux; the development version (.python-version)
+      # on Windows and macOS. `primary` publishes the coverage reports.
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - { os: ubuntu-latest, python: "3.14", primary: true }
+          - { os: ubuntu-latest, python: "3.13" }
+          - { os: ubuntu-latest, python: "3.12" }
+          - { os: windows-latest, python: "3.14" }
+          - { os: macos-latest, python: "3.14" }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -60,6 +67,8 @@ jobs:
           persist-credentials: false
 
       - uses: ./.github/actions/setup-uv
+        with:
+          python-version: ${{ matrix.python }}
 
       - name: Run tests with coverage
         shell: bash
@@ -69,13 +78,13 @@ jobs:
           --junitxml=junit.xml
 
       - name: Diff coverage (every changed line must be tested)
-        if: github.event_name == 'pull_request' && runner.os == 'Linux'
+        if: github.event_name == 'pull_request' && matrix.primary
         env:
           BASE_REF: ${{ github.base_ref }}
         run: uv run diff-cover coverage.xml --config-file pyproject.toml --compare-branch "origin/${BASE_REF}"
 
       - name: Coverage summary
-        if: always() && runner.os == 'Linux'
+        if: always() && matrix.primary
         shell: bash
         run: uv run coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
 
@@ -83,7 +92,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-reports-${{ matrix.os }}
+          name: test-reports-${{ matrix.os }}-py${{ matrix.python }}
           path: |
             coverage.xml
             junit.xml
