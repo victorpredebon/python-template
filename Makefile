@@ -1,4 +1,4 @@
-.PHONY: help install lock run lint format typecheck tests coverage diff-cover audit deps check build mutation pre-commit setup-pre-commit pre-commit-update release clean
+.PHONY: help install lock run docker lint format typecheck tests coverage diff-cover audit deps check build mutation pre-commit setup-pre-commit pre-commit-update release clean
 
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "} ; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -11,6 +11,10 @@ lock: ## Update uv.lock after editing dependencies in pyproject.toml
 
 run: ## Run the application
 	uv run calculator
+
+docker: ## Build the production image and run it
+	docker build --tag calculator .
+	docker run --rm calculator
 
 lint: ## Lint code (no auto-fix)
 	uv run ruff check --no-fix

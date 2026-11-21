@@ -40,6 +40,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 🧬 **Hypothesis + mutmut** | Property-based tests for edge cases, and mutation testing that proves tests notice when code is wrong (coverage alone doesn't) |
 | 🛂 **Gate-bypass detection** | Suppression comments (`noqa`, `type: ignore`, `ast-grep-ignore`, `pragma: no cover`) are banned outright; skipped tests and gate config changes need a code owner's `allow-gate-change` label |
 | 🧑‍⚖️ **Independent AI review** | Optional Claude reviewer (read-only, comments only) focused on bugs, unneeded code and weak tests |
+| 🐳 **Docker + dev container** | Multi-stage production image (uv, no dev tools or sources, non-root user), built and smoke-tested in CI; a dev container with uv, the dependencies and git hooks ready for VS Code, Codespaces and cloud agents |
 | 🪝 **Agent hooks** | One set of scripts in `.agents/hooks/` wired into Claude Code, Codex, Gemini CLI and GitHub Copilot: install dependencies at session start, lint every edited file, block skipping git hooks / force pushes, run the gates before the agent finishes |
 
 ---
@@ -132,6 +133,7 @@ make check               # every quality gate, same as CI
 make diff-cover          # every changed line must be covered (after make coverage)
 make mutation            # mutation testing (fails if any mutant survives)
 make build               # build sdist + wheel into dist/ and validate them
+make docker              # build the production image and run it
 make release             # bump version, update CHANGELOG and tag locally (no push)
 make pre-commit          # run all pre-commit hooks
 make setup-pre-commit    # install git hooks (commit-msg + pre-push)
@@ -177,6 +179,7 @@ Runs on pull requests, pushes to `main`, the merge queue, weekly (to catch new C
 | **Test** | always | pytest on Python 3.12, 3.13 and 3.14 (Linux) and on Windows and macOS; coverage gate; on PRs, 100% coverage of changed lines (diff-cover); JUnit/coverage reports as artifacts and in the job summary |
 | **Dependency audit** | always | `pip-audit` (blocking) and `deptry` |
 | **Dependency review** | PRs | Blocks PRs that add dependencies with known vulnerabilities (moderate+) |
+| **Container images** | always | Builds the production image, runs it and checks it doesn't run as root; builds the dev container image |
 | **Build package** | always | Plans the next version, builds sdist + wheel with `uv build`, `twine check --strict`, smoke-tests the wheel in a clean venv, generates a CycloneDX SBOM and `SHA256SUMS.txt` |
 | **CI OK** | always | Single aggregated status — make it the only required check in your branch ruleset |
 | **Release** | push to `main` with releasable commits | Verifies the artifacts, signs SLSA build provenance, creates the `vX.Y.Z` tag and GitHub release, and uploads wheel, sdist, SBOM and checksums |
@@ -307,6 +310,8 @@ python-template/
 ├── .claude/ .codex/ .gemini/ # Per-agent configs that point at .agents/hooks/
 ├── AGENTS.md                 # Instructions for AI coding agents (CLAUDE.md imports it)
 ├── SECURITY.md               # How to report vulnerabilities
+├── Dockerfile                # Production image (+ .dockerignore)
+├── .devcontainer/            # Dev container: uv + dependencies + git hooks
 └── Makefile                  # Dev commands
 ```
 

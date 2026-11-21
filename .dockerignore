@@ -1,0 +1,16 @@
+# Keep the build context small and free of secrets: only what `uv sync` needs.
+.git/
+.venv/
+.env
+.env.*
+*.pem
+*.key
+**/__pycache__/
+.*_cache/
+.coverage*
+coverage.xml
+junit.xml
+htmlcov/
+mutants/
+dist/
+build/

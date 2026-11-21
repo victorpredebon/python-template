@@ -21,6 +21,7 @@ make format      # auto-fix lint and format
 make check       # all hooks (ruff, mypy, architecture, dead code, duplication, ast-grep),
                  # tests + coverage, diff coverage, audit, deptry (same gates as CI)
 make build       # build sdist + wheel into dist/ and validate them
+make docker      # build the production image (Dockerfile) and run it
 make mutation    # mutation testing: every mutant must be caught by a test
 make run         # run the app
 ```
@@ -51,7 +52,8 @@ points at them (`lib.sh` adapts the answer to the agent's hook protocol):
 | Gemini CLI | `.gemini/settings.json` |
 | GitHub Copilot cloud agent | `.github/hooks/agent-hooks.json` + `.github/workflows/copilot-setup-steps.yml` |
 
-Agents without hooks get the same checks from the git hooks (`make setup-pre-commit`) and CI.
+Cloud agents and editors that use dev containers get a ready environment from
+`.devcontainer/`. Agents without hooks get the same checks from the git hooks (`make setup-pre-commit`) and CI.
 Never rely on a hook: CI enforces every rule.
 
 ## How to work

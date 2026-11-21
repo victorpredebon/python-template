@@ -208,11 +208,32 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  container:
+    name: Container images
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build and smoke test the production image
+        run: |
+          docker build --tag calculator:ci .
+          docker run --rm calculator:ci
+          uid="$(docker run --rm --entrypoint id calculator:ci -u)"
+          test "${uid}" != "0" || { echo "::error::the image runs as root"; exit 1; }
+
+      - name: Build the dev container image
+        run: docker build --tag devcontainer:ci .devcontainer
+
   # Single required status check for branch protection / rulesets.
   ci-ok:
     name: CI OK
     if: always()
-    needs: [lint, test, security, dependency-review, build]
+    needs: [lint, test, security, dependency-review, build, container]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}

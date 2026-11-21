@@ -16,6 +16,18 @@ updates:
       dev-dependencies:
         dependency-type: "development"
 
+  - package-ecosystem: "docker"
+    # Base images of the production image and the dev container.
+    directories:
+      - "/"
+      - "/.devcontainer"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps):"
+
   - package-ecosystem: "github-actions"
     # Workflows plus the local composite action (Actions are pinned by SHA).
     directories:
