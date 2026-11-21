@@ -12,13 +12,17 @@ set -euo pipefail
 : "${BASE_SHA:?}" "${HEAD_SHA:?}"
 LABEL="${OVERRIDE_LABEL:-allow-gate-change}"
 
-# Added Python lines that silence a check.
-code_pattern='#[[:space:]]*(noqa|type:[[:space:]]*ignore|pyright:[[:space:]]*ignore)|pragma:[[:space:]]*no[[:space:]]*cover|pytest[.](mark[.](skip|skipif|xfail)|skip[(]|xfail[(]|importorskip[(])|unittest[.]skip'
+# Added Python comments that silence a check. Never allowed, not even with the label:
+# fix the code, or fix the rule in its own PR.
+suppression_pattern='#.*(noqa|type:[[:space:]]*ignore|pyright:[[:space:]]*ignore|mypy:[[:space:]]*ignore-errors|ast-grep-ignore|pragma:[[:space:]]*no[[:space:]]*cover)'
+# Added Python lines that skip tests. Sometimes legitimate (platform-specific), so a
+# code owner can approve them.
+code_pattern='pytest[.](mark[.](skip|skipif|xfail)|skip[(]|xfail[(]|importorskip[(])|unittest[.]skip'
 # Added or removed configuration lines that tune a gate (incl. quoted rule codes)
 # or grant workflows write access.
 config_pattern='fail_under|ignore|strict|select|disable|stages|exclude|omit|severity|continue-on-error|threshold|min[A-Z_]|layers|forbidden|"[A-Z]+[0-9]+"|:[[:space:]]*write'
 config_paths=(pyproject.toml .pre-commit-config.yaml .github/zizmor.yml .github/workflows
-  .github/actions .jscpd.json sgconfig.yml rules)
+  .github/actions .jscpd.json sgconfig.yml rules rule-utils)
 
 # Prints "path: line" for lines changed between two commits that match the pattern.
 scan() {
@@ -39,9 +43,17 @@ gate_changes() {
   scan "${from}" "${to}" "${config_pattern}" '+-' "${config_paths[@]}"
   # Deleting a project rule or its tests silently drops a check, and this script
   # is the gate on all of the above.
-  git diff --diff-filter=D --name-only "${from}" "${to}" -- rules rule-tests | sed 's/^/deleted: /'
+  git diff --diff-filter=D --name-only "${from}" "${to}" -- rules rule-tests rule-utils | sed 's/^/deleted: /'
   git diff --name-only "${from}" "${to}" -- .github/scripts/check-quality-gates.sh | sed 's/^/modified: /'
 }
+
+suppressions="$(scan "${BASE_SHA}" "${HEAD_SHA}" "${suppression_pattern}" '+' '*.py')"
+if [[ -n "${suppressions}" ]]; then
+  echo "Suppression comments are not allowed:"
+  echo "${suppressions}"
+  echo "::error::This PR adds comments that silence a check. They are never allowed, not even with the '${LABEL}' label: fix the code so the check passes, or fix the rule itself in a separate PR."
+  exit 1
+fi
 
 findings="$(gate_changes "${BASE_SHA}" "${HEAD_SHA}")"
 

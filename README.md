@@ -38,7 +38,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 🤖 **AI-agent ready** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
 | 🏛️ **Deterministic design checks** | import-linter architecture contracts, vulture (dead code), jscpd (duplication), diff-cover (100% on changed lines) and 16 generic ast-grep rules (tests, error handling, logging, types, data structures) |
 | 🧬 **Hypothesis + mutmut** | Property-based tests for edge cases, and mutation testing that proves tests notice when code is wrong (coverage alone doesn't) |
-| 🛂 **Gate-bypass detection** | New `noqa`, `type: ignore`, skipped tests or gate config changes need a code owner's `allow-gate-change` label |
+| 🛂 **Gate-bypass detection** | Suppression comments (`noqa`, `type: ignore`, `ast-grep-ignore`, `pragma: no cover`) are banned outright; skipped tests and gate config changes need a code owner's `allow-gate-change` label |
 | 🧑‍⚖️ **Independent AI review** | Optional Claude reviewer (read-only, comments only) focused on bugs, unneeded code and weak tests |
 | 🪝 **Claude Code hooks** | `.claude/settings.json` runs the gates before an agent finishes and blocks skipping hooks / force pushes |
 
@@ -201,7 +201,7 @@ Since `main` is protected (changes only via pull request), releases run with `--
 | Job | What it does |
 |-----|--------------|
 | **Conventional commits** | Validates the PR title (the squash-merge commit) and every commit with Commitizen |
-| **Quality-gate changes** | Fails if the PR adds `# noqa`, `# type: ignore`, `pragma: no cover`, skipped/xfail tests, or changes gate configuration (coverage threshold, Ruff/mypy rules, hook stages, workflow severities), unless a **human code owner** added the `allow-gate-change` label. Labels added by bots don't count, and code owners are read from the base branch, so an agent can't approve its own bypass. The approval covers what was reviewed: a later push that changes gates again (or rewrites history) removes the label automatically. Changes to the checker script and new `write` permissions in workflows count as gate changes too. |
+| **Quality-gate changes** | **Always** fails if the PR adds a suppression comment (`# noqa`, `# ruff: noqa`, `# type: ignore`, `# pyright: ignore`, `# mypy: ignore-errors`, `# ast-grep-ignore`, `# pragma: no cover`), with no approval possible: fix the code, or fix the rule in its own PR (a pre-commit hook enforces the same locally). Fails if the PR adds skipped/xfail tests or changes gate configuration (coverage threshold, Ruff/mypy rules, hook stages, workflow severities), unless a **human code owner** added the `allow-gate-change` label. Labels added by bots don't count, and code owners are read from the base branch, so an agent can't approve its own bypass. The approval covers what was reviewed: a later push that changes gates again (or rewrites history) removes the label automatically. Changes to the checker script and new `write` permissions in workflows count as gate changes too. |
 
 It runs separately from `ci.yml` so editing the title or adding the label re-checks in seconds.
 

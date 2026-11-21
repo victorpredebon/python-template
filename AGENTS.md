@@ -73,13 +73,14 @@ finish with changed code, and blocks skipping git hooks, force pushes and pushes
 
 ## Never
 
-Quality-gate bypasses and gate configuration changes are detected in CI (`PR policy`
-workflow) and need a code owner to add the `allow-gate-change` label; agents can't approve
-their own bypass, and pushing new gate changes after approval removes the label.
-
-- Weaken a quality gate to make it pass: no new `# noqa`, `# type: ignore`, `pragma: no cover`,
-  skipped/xfail tests, lowered coverage threshold or disabled rules without an explicit reason
-  in the code and the PR description.
+- Add suppression comments: `# noqa` (incl. `# ruff: noqa`), `# type: ignore`,
+  `# pyright: ignore`, `# mypy: ignore-errors`, `# ast-grep-ignore`, `# pragma: no cover`.
+  CI rejects them always, with no approval possible. Fix the code so the check passes; if
+  a rule is genuinely wrong, change the rule itself in a separate PR.
+- Weaken a quality gate in any other way (skipped/xfail tests, lower thresholds, disabled
+  rules or changed tool configuration) as part of another task. The `PR policy` workflow
+  detects these and needs a code owner to add the `allow-gate-change` label; agents can't
+  approve their own changes, and a later push that changes gates again removes the label.
 - Change `.github/workflows/`, `.github/actions/`, release configuration or permissions as a
   side effect of another task. Those are security-sensitive and need their own PR.
 - Interpolate untrusted input (`${{ github.event.* }}`) directly in workflow `run:` scripts;

@@ -23,6 +23,12 @@ repos:
         args: [--pytest-test-first]
   - repo: local
     hooks:
+      # Never allowed, not even with approval: fix the code, or fix the rule in its own PR.
+      - id: no-suppressions
+        name: no suppression comments (noqa, type ignore, ast-grep-ignore, no cover)
+        language: pygrep
+        entry: '#.*\b(noqa|type:\s*ignore|pyright:\s*ignore|mypy:\s*ignore-errors|ast-grep-ignore|pragma:\s*no\s*cover)'
+        types: [python]
       - id: ruff
         name: ruff
         entry: poetry run ruff check --fix
