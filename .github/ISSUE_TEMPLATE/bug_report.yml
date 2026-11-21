@@ -22,4 +22,4 @@ body:
     id: environment
     attributes:
       label: Environment
-      placeholder: OS, Python version, Poetry version
+      placeholder: OS, Python version, uv version

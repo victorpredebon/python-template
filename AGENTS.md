@@ -5,7 +5,7 @@ repository. Humans should follow them too. Read this file before changing anythi
 
 ## Project
 
-Python 3.14 template managed with Poetry. Installable `src/` layout:
+Python 3.14 template managed with [uv](https://docs.astral.sh/uv/). Installable `src/` layout:
 
 - `src/calculator/` — the package (`cli.py` is the `calculator` console entry point)
 - `tests/` — pytest suite (`test_*.py`, mirrors the package)
@@ -68,8 +68,8 @@ finish with changed code, and blocks skipping git hooks, force pushes and pushes
   paths. When review finds a pattern worth enforcing, propose a rule instead of a comment.
 - **No dead or duplicated code:** vulture and jscpd fail on unused definitions and copy-paste.
   Every changed line must be covered by tests (`make diff-cover`).
-- **Dependencies:** add them with `poetry add` (runtime) or `poetry add --group dev` and commit
-  the updated `poetry.lock`. Never edit `poetry.lock` by hand.
+- **Dependencies:** add them with `uv add` (runtime) or `uv add --group dev` and commit
+  the updated `uv.lock`. Never edit `uv.lock` by hand. Run tools with `uv run`.
 
 ## Never
 

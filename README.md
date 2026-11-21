@@ -24,13 +24,13 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | Tool | Purpose |
 |------|---------|
 | 🐍 **Python 3.14+** | Latest stable Python; Ruff's `UP` rules keep syntax modern |
-| 📦 **Poetry** | Reproducible builds with pinned lockfile, local `.venv` and PEP 735 dependency groups |
+| 📦 **uv** | One fast tool for Python versions, virtualenvs and a cross-platform lockfile (`uv.lock`), with PEP 735 dependency groups, the `uv_build` backend and a 7-day cooldown on new releases (`exclude-newer`) |
 | ⚡ **Ruff** | Blazing-fast linter and formatter — replaces `flake8`, `isort`, and `black` in one tool |
 | 🔍 **MyPy** | Strict static type checking and type safety enforcement |
 | 🧪 **Pytest + pytest-cov** | Parallel test suite with branch coverage and an 80% minimum coverage gate |
 | 🔒 **pre-commit** | Code quality hooks sourced from the project's own virtualenv — zero version drift |
 | 📐 **Commitizen** | Enforces [Conventional Commits](https://www.conventionalcommits.org) on every commit message |
-| 🛡️ **pip-audit** | Scans `poetry.lock` for dependencies with known CVEs |
+| 🛡️ **pip-audit** | Scans the locked environment for dependencies with known CVEs |
 | 🧹 **deptry** | Detects unused, missing, and transitive dependencies in `pyproject.toml` |
 | 🚀 **python-semantic-release** | Automates versioning and changelog generation from Conventional Commits (optional `release` group, installed only where it runs) |
 | 🔐 **Hardened CI/CD** | Actions pinned by SHA, least-privilege tokens, zizmor + actionlint + CodeQL on the workflows, OpenSSF Scorecard, dependency review, Dependabot cooldown |
@@ -47,8 +47,8 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 ## 🚀 Why this template?
 
 - **Instant scaffold** — `make install` is all you need. No manual wiring, no hunting for config examples.
-- **Reproducible builds** — Poetry lockfile + local virtualenv ensure every developer and CI run uses the exact same dependency versions.
-- **Version-locked tooling** — pre-commit hooks run via `poetry run`, so the linter, formatter, and type checker in hooks always match `poetry.lock`. No drift, ever.
+- **Reproducible builds** — `uv.lock` + local virtualenv ensure every developer and CI run uses the exact same dependency versions; CI fails if the lockfile is out of date (`uv sync --locked`).
+- **Version-locked tooling** — pre-commit hooks run via `uv run`, so the linter, formatter, and type checker in hooks always match `uv.lock`. No drift, ever.
 - **Quality gates enforced** — Ruff, MyPy, and an 80% coverage threshold block bad code before it hits the repo.
 - **Conventional Commits baked in** — Commitizen validates every commit message, keeping changelogs and versioning automatable from day one.
 - **Scalable project structure** — installable `src/` layout with a console entry point and `py.typed`, ready to grow or publish.
@@ -60,8 +60,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 
 ### Prerequisites
 
-- Python 3.14+
-- [Poetry](https://python-poetry.org/docs/#installation)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) — it installs the Python version in `.python-version` for you
 
 ### Use this template
 
@@ -86,8 +85,8 @@ make install
 ### Run
 
 ```bash
-make run                      # same as: poetry run calculator
-poetry run python -m calculator
+make run                      # same as: uv run calculator
+uv run python -m calculator
 ```
 
 ### Make it yours (rename checklist)
@@ -95,11 +94,11 @@ poetry run python -m calculator
 After creating your repository from the template, replace the example names:
 
 1. **Package** — rename `src/calculator/` to your package name and update its imports in `src/` and `tests/`.
-2. **`pyproject.toml`** — `name`, `description`, `authors`, `[project.scripts]` (command name and `module:function`), `packages` under `[tool.poetry]` and `source_pkgs` under `[tool.coverage.run]`.
+2. **`pyproject.toml`** — `name`, `description`, `authors`, `[project.scripts]` (command name and `module:function`), `module-name` under `[tool.uv.build-backend]` and `source_pkgs` under `[tool.coverage.run]`.
 3. **Version history** — reset `version` to `0.1.0` (or `1.0.0`) and clear `CHANGELOG.md`.
 4. **Ownership** — `LICENSE` holder, `[project.urls]` in `pyproject.toml`, `.github/CODEOWNERS`, the links in `SECURITY.md` and `.github/ISSUE_TEMPLATE/config.yml`, and this README (badges, star history, author).
 5. **Security model** — delete or rewrite `SECURITY_MODEL.md` for your project.
-6. Run `poetry lock && make install && make check`.
+6. Run `make lock install check`.
 
 Search for leftovers with `git grep -n -i -e calculator -e python-template -e predebon`.
 
@@ -142,7 +141,7 @@ make clean               # clean caches and build artifacts
 
 ### Pre-commit hooks
 
-The Python tools run from the project's virtualenv via `poetry run` — no separately installed binaries, no version mismatch between your editor, CI, and git hooks. Hook stages are declared in `.pre-commit-config.yaml` itself (`default_install_hook_types`), so `make setup-pre-commit` and a plain `pre-commit install` behave the same:
+The Python tools run from the project's virtualenv via `uv run` — no separately installed binaries, no version mismatch between your editor, CI, and git hooks. Hook stages are declared in `.pre-commit-config.yaml` itself (`default_install_hook_types`), so `make setup-pre-commit` and a plain `pre-commit install` behave the same:
 
 | Hook | Stage | What it does |
 |------|-------|-------------|
@@ -178,7 +177,7 @@ Runs on pull requests, pushes to `main`, the merge queue, weekly (to catch new C
 | **Test** | always | pytest on Linux, Windows and macOS; coverage gate; on PRs, 100% coverage of changed lines (diff-cover); JUnit/coverage reports as artifacts and in the job summary |
 | **Dependency audit** | always | `pip-audit` (blocking) and `deptry` |
 | **Dependency review** | PRs | Blocks PRs that add dependencies with known vulnerabilities (moderate+) |
-| **Build package** | always | Plans the next version, builds sdist + wheel, `poetry check --strict`, `twine check --strict`, smoke-tests the wheel in a clean venv, generates a CycloneDX SBOM and `SHA256SUMS.txt` |
+| **Build package** | always | Plans the next version, builds sdist + wheel with `uv build`, `twine check --strict`, smoke-tests the wheel in a clean venv, generates a CycloneDX SBOM and `SHA256SUMS.txt` |
 | **CI OK** | always | Single aggregated status — make it the only required check in your branch ruleset |
 | **Release** | push to `main` with releasable commits | Verifies the artifacts, signs SLSA build provenance, creates the `vX.Y.Z` tag and GitHub release, and uploads wheel, sdist, SBOM and checksums |
 
@@ -283,7 +282,7 @@ python-template/
 │   ├── test_calc.py
 │   └── test_cli.py
 ├── .github/
-│   ├── actions/setup-poetry/ # Shared CI setup (composite action)
+│   ├── actions/setup-uv/     # Shared CI setup (composite action)
 │   ├── workflows/
 │   │   ├── ci.yml            # Quality gates, packaging and release
 │   │   ├── pr-policy.yml     # PR title/commits and gate-bypass checks
@@ -298,8 +297,8 @@ python-template/
 │   ├── PULL_REQUEST_TEMPLATE.md
 │   └── dependabot.yml
 ├── pyproject.toml            # Project config (deps, ruff, mypy, pytest, coverage)
-├── poetry.toml               # Poetry settings (virtualenv created inside project)
-├── poetry.lock               # Pinned dependencies
+├── uv.lock                   # Pinned dependencies (cross-platform)
+├── .python-version           # Python version uv installs and uses
 ├── .pre-commit-config.yaml   # Pre-commit hooks
 ├── rules/ + rule-tests/      # ast-grep rules and their tests (sgconfig.yml)
 ├── rule-utils/               # Shared ast-grep contexts: in a test, in the entry point
@@ -320,8 +319,8 @@ python-template/
 
 ## ❓ FAQ
 
-**How do I use this without Poetry?**
-Install dependencies with pip and adapt commands manually. Poetry is strongly recommended for reproducible builds and lockfile management.
+**Why uv instead of Poetry or pip?**
+uv replaces pip, venv, pyenv and Poetry with one tool that is 10-100x faster. It installs the right Python by itself, its lockfile is cross-platform, and it handles hard cases such as PyTorch CPU/CUDA indexes (`[tool.uv.sources]`). Without uv, `pip install -e . --group dev` (pip 25.1+) works, but without the lockfile guarantees.
 
 **Why Python 3.14?**
 Targets the latest stable Python for best performance and modern language features. To downgrade, edit `.python-version`, plus `requires-python` and `target-version` in `pyproject.toml`.
@@ -329,11 +328,11 @@ Targets the latest stable Python for best performance and modern language featur
 **Can I use this as a cookiecutter alternative?**
 Yes. Use the GitHub template button to scaffold a new repo instantly, or pull via Git. There's no generator step — the structure is ready to rename and adapt.
 
-**What is `poetry.toml`?**
-It pins `virtualenvs.in-project = true`, so Poetry always creates `.venv/` inside the project root. This makes the environment easy to locate for editors, type checkers, and `poetry run`.
+**How do I add a dependency?**
+`uv add <package>` (runtime) or `uv add --group dev <package>` (tooling). Both update `pyproject.toml` and `uv.lock`; commit both. Releases younger than 7 days are ignored (`exclude-newer` in `[tool.uv]`).
 
-**Why do pre-commit hooks use `poetry run` instead of remote repos?**
-Remote repos pin their own tool versions independently of your project. Using `repo: local` with `poetry run` means every hook runs at the exact version in `poetry.lock` — the same binary your editor and CI use.
+**Why do pre-commit hooks use `uv run` instead of remote repos?**
+Remote repos pin their own tool versions independently of your project. Using `repo: local` with `uv run` means every hook runs at the exact version in `uv.lock` — the same binary your editor and CI use.
 
 **How do I enable pre-commit hooks?**
 Run `make setup-pre-commit`. This installs hooks for the `commit-msg` (Commitizen) and `pre-push` (Ruff, MyPy, etc.) stages.

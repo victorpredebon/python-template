@@ -32,7 +32,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-poetry
+      - uses: ./.github/actions/setup-uv
 
       - name: Cache pre-commit environments
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -41,7 +41,7 @@ jobs:
           key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Run pre-commit (ruff, mypy, zizmor, actionlint, file checks)
-        run: poetry run pre-commit run --all-files --show-diff-on-failure
+        run: uv run pre-commit run --all-files --show-diff-on-failure
 
   test:
     name: Test (${{ matrix.os }})
@@ -59,12 +59,12 @@ jobs:
           fetch-depth: 0 # diff-cover compares against the base branch
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-poetry
+      - uses: ./.github/actions/setup-uv
 
       - name: Run tests with coverage
         shell: bash
         run: >-
-          poetry run pytest -n auto
+          uv run pytest -n auto
           --cov --cov-report=term-missing --cov-report=xml
           --junitxml=junit.xml
 
@@ -72,12 +72,12 @@ jobs:
         if: github.event_name == 'pull_request' && runner.os == 'Linux'
         env:
           BASE_REF: ${{ github.base_ref }}
-        run: poetry run diff-cover coverage.xml --config-file pyproject.toml --compare-branch "origin/${BASE_REF}"
+        run: uv run diff-cover coverage.xml --config-file pyproject.toml --compare-branch "origin/${BASE_REF}"
 
       - name: Coverage summary
         if: always() && runner.os == 'Linux'
         shell: bash
-        run: poetry run coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+        run: uv run coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload test reports
         if: always()
@@ -100,7 +100,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-poetry
+      - uses: ./.github/actions/setup-uv
 
       - name: Audit dependencies for known vulnerabilities
         run: make audit
@@ -140,9 +140,9 @@ jobs:
           persist-credentials: false
 
       # No cache: this job produces the artifacts that get released.
-      - uses: ./.github/actions/setup-poetry
+      - uses: ./.github/actions/setup-uv
         with:
-          install-args: --only build,release --no-root
+          install-args: --only-group build --only-group release --no-install-project
           cache: "false"
 
       - name: Plan release version
@@ -150,32 +150,31 @@ jobs:
         env:
           IS_RELEASE_RUN: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: |
-          current="$(poetry version --short)"
+          current="$(uv version --short)"
           if [[ "${IS_RELEASE_RUN}" == "true" ]]; then
             # semantic-release writes its own step outputs (released=false on
             # --print); send them to /dev/null so they don't clash with ours.
-            next="$(GITHUB_OUTPUT=/dev/null poetry run semantic-release version --print)"
-            last="$(GITHUB_OUTPUT=/dev/null poetry run semantic-release version --print-last-released)"
+            next="$(GITHUB_OUTPUT=/dev/null uv run --no-sync semantic-release version --print)"
+            last="$(GITHUB_OUTPUT=/dev/null uv run --no-sync semantic-release version --print-last-released)"
           else
             next="${current}"
             last="${current}"
           fi
           if [[ "${next}" != "${last}" ]]; then released=true; else released=false; fi
-          poetry version "${next}"
+          uv version --frozen "${next}"
           echo "version=${next}" >> "$GITHUB_OUTPUT"
           echo "released=${released}" >> "$GITHUB_OUTPUT"
           echo "### Release plan: \`${last}\` → \`${next}\` (release: ${released})" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build sdist and wheel
         run: |
-          poetry check --strict
-          poetry build
-          poetry run twine check --strict dist/*
+          uv build
+          uv run --no-sync twine check --strict dist/*
 
       - name: Smoke test the wheel in a clean virtualenv
         run: |
-          python -m venv "${RUNNER_TEMP}/smoke"
-          "${RUNNER_TEMP}/smoke/bin/python" -m pip install --quiet dist/*.whl
+          uv venv "${RUNNER_TEMP}/smoke"
+          uv pip install --quiet --python "${RUNNER_TEMP}/smoke/bin/python" dist/*.whl
           "${RUNNER_TEMP}/smoke/bin/calculator"
           "${RUNNER_TEMP}/smoke/bin/python" -c "import calculator; assert calculator.sum_numbers(2, 3) == 5"
           unzip -l dist/*.whl | grep -q 'calculator/py.typed'
@@ -184,7 +183,7 @@ jobs:
         env:
           VERSION: ${{ steps.plan.outputs.version }}
         run: |
-          poetry run cyclonedx-py environment --of JSON \
+          uv run --no-sync cyclonedx-py environment --of JSON \
             -o "dist/python_template-${VERSION}.cdx.json" "${RUNNER_TEMP}/smoke/bin/python"
           (cd dist && sha256sum -- * > SHA256SUMS.txt)
           {
@@ -244,9 +243,9 @@ jobs:
           fetch-depth: 0
           persist-credentials: false # semantic-release pushes with GH_TOKEN
 
-      - uses: ./.github/actions/setup-poetry
+      - uses: ./.github/actions/setup-uv
         with:
-          install-args: --only release --no-root
+          install-args: --only-group release --no-install-project
           cache: "false"
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -258,7 +257,7 @@ jobs:
         env:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
-          next="$(GITHUB_OUTPUT=/dev/null poetry run semantic-release version --print)"
+          next="$(GITHUB_OUTPUT=/dev/null uv run --no-sync semantic-release version --print)"
           test "${next}" = "${VERSION}" || { echo "::error::planned ${VERSION}, computed ${next}"; exit 1; }
           (cd dist && sha256sum --check SHA256SUMS.txt)
 
@@ -273,10 +272,10 @@ jobs:
       - name: Create tag and GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: poetry run semantic-release version --no-commit --skip-build
+        run: uv run --no-sync semantic-release version --no-commit --skip-build
 
       - name: Upload packages, SBOM and checksums to the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.build.outputs.version }}
-        run: poetry run semantic-release publish --tag "v${VERSION}"
+        run: uv run --no-sync semantic-release publish --tag "v${VERSION}"

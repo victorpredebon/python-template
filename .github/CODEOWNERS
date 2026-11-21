@@ -6,7 +6,7 @@
 # Keep them explicit so they stay protected if the default owner above changes.
 /.github/                 @victorpredebon
 /pyproject.toml           @victorpredebon
-/poetry.lock              @victorpredebon
+/uv.lock                  @victorpredebon
 /.pre-commit-config.yaml  @victorpredebon
 /.claude/                 @victorpredebon
 /AGENTS.md                @victorpredebon

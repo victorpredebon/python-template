@@ -31,43 +31,43 @@ repos:
         types: [python]
       - id: ruff
         name: ruff
-        entry: poetry run ruff check --fix
+        entry: uv run ruff check --fix
         language: system
         types: [python]
       - id: ruff-format
         name: ruff-format
-        entry: poetry run ruff format
+        entry: uv run ruff format
         language: system
         types: [python]
       - id: mypy
         name: mypy
         # Checks the whole project (paths in [tool.mypy] files) so cross-module
         # errors are not missed when only some files changed.
-        entry: poetry run mypy
+        entry: uv run mypy
         language: system
         types: [python]
         pass_filenames: false
       - id: import-linter
         name: import-linter (architecture contracts)
-        entry: poetry run lint-imports
+        entry: uv run lint-imports
         language: system
         types: [python]
         pass_filenames: false
       - id: vulture
         name: vulture (dead code)
-        entry: poetry run vulture
+        entry: uv run vulture
         language: system
         types: [python]
         pass_filenames: false
       - id: ast-grep
         name: ast-grep (project patterns in rules/)
-        entry: poetry run ast-grep scan
+        entry: uv run ast-grep scan
         language: system
         types: [python]
         pass_filenames: false
       - id: ast-grep-test
         name: ast-grep rule tests
-        entry: poetry run ast-grep test --skip-snapshot-tests
+        entry: uv run ast-grep test --skip-snapshot-tests
         language: system
         files: ^(rules/|rule-tests/|sgconfig\.yml$)
         pass_filenames: false
@@ -80,30 +80,30 @@ repos:
         pass_filenames: false
       - id: actionlint
         name: actionlint
-        entry: poetry run actionlint
+        entry: uv run actionlint
         language: system
         files: ^\.github/workflows/
         pass_filenames: false
       - id: zizmor
         name: zizmor (GitHub Actions security)
-        entry: poetry run zizmor --offline --min-severity low .github
+        entry: uv run zizmor --offline --min-severity low .github
         language: system
         files: ^\.github/
         pass_filenames: false
       - id: commitizen
         name: commitizen
-        entry: poetry run cz check --commit-msg-file
+        entry: uv run cz check --commit-msg-file
         language: system
         stages: [commit-msg]
       - id: pip-audit
         name: pip-audit
-        entry: poetry run pip-audit --skip-editable
+        entry: uv run pip-audit --skip-editable
         language: system
         pass_filenames: false
         stages: [manual]
       - id: deptry
         name: deptry
-        entry: poetry run deptry .
+        entry: uv run deptry .
         language: system
         pass_filenames: false
         stages: [manual]

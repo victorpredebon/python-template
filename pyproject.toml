@@ -5,9 +5,10 @@ description = "A modern, opinionated Python boilerplate with linting, typing, te
 authors = [{ name = "Victor Predebon", email = "predebonvictor@gmail.com" }]
 readme = "README.md"
 license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.14,<4"
 dependencies = []
-keywords = ["template", "boilerplate", "poetry", "ruff", "mypy"]
+keywords = ["template", "boilerplate", "uv", "ruff", "mypy"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
@@ -48,20 +49,23 @@ dev = [
   "vulture>=2",
   "ast-grep-cli>=0.39",
 ]
-# Packaging checks and SBOM: `poetry install --with build`
+# Packaging checks and SBOM: `uv sync --group build`
 build = ["twine>=6", "cyclonedx-bom>=7"]
-# Only needed by the CI release job: `poetry install --only release`
+# Only needed by the CI release job: `uv sync --only-group release`
 release = ["python-semantic-release>=10.7.0,<11"]
 
 
-[tool.poetry]
-packages = [{ include = "calculator", from = "src" }]
+[tool.uv]
+# Same uv everywhere (CI pins this version in .github/actions/setup-uv).
+required-version = ">=0.11.32,<0.12"
+# `uv sync` / `uv run` install only `dev`; `build` and `release` are opt-in.
+default-groups = ["dev"]
+# Supply-chain cooldown, like Dependabot's: ignore releases younger than a week
+# (most compromised packages are detected and yanked within days).
+exclude-newer = "7 days"
 
-[tool.poetry.group.build]
-optional = true
-
-[tool.poetry.group.release]
-optional = true
+[tool.uv.build-backend]
+module-name = "calculator"
 
 
 [tool.ruff]
@@ -186,8 +190,8 @@ show_missing = true
 
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.11.32,<0.12"]
+build-backend = "uv_build"
 
 
 # Mutation testing: `make mutation`. Changes the code in small ways and checks

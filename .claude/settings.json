@@ -33,7 +33,7 @@
       "Edit(/.pre-commit-config.yaml)"
     ],
     "deny": [
-      "Edit(/poetry.lock)",
+      "Edit(/uv.lock)",
       "Read(**/.env)",
       "Read(**/.env.*)",
       "Read(**/*.pem)",

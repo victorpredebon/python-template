@@ -26,20 +26,20 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: ./.github/actions/setup-poetry
+      - uses: ./.github/actions/setup-uv
 
       # With squash merges the PR title becomes the commit on main that
       # semantic-release reads, so it must follow Conventional Commits too.
       - name: Check PR title
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
-        run: poetry run cz check --message "${PR_TITLE}"
+        run: uv run cz check --message "${PR_TITLE}"
 
       - name: Check commit messages
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: poetry run cz check --rev-range "${BASE_SHA}..${HEAD_SHA}"
+        run: uv run cz check --rev-range "${BASE_SHA}..${HEAD_SHA}"
 
   quality-gates:
     name: Quality-gate changes
