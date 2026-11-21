@@ -1,0 +1,51 @@
+{
+  "description": "Project hooks shared with the other agents: see .agents/hooks/ and AGENTS.md.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "\"$(git rev-parse --show-toplevel)\"/.agents/hooks/lint-file.sh",
+            "timeout": 60,
+            "type": "command"
+          }
+        ],
+        "matcher": "^(apply_patch|Edit|Write)$"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "python3 \"$(git rev-parse --show-toplevel)\"/.agents/hooks/guard_bash.py",
+            "timeout": 30,
+            "type": "command"
+          }
+        ],
+        "matcher": "^Bash$"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "\"$(git rev-parse --show-toplevel)\"/.agents/hooks/session-start.sh",
+            "timeout": 300,
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "\"$(git rev-parse --show-toplevel)\"/.agents/hooks/quality-gates.sh",
+            "timeout": 600,
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  }
+}

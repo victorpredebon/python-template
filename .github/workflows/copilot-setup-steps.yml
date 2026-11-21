@@ -1,0 +1,30 @@
+name: Copilot setup steps
+
+# Prepares the environment of GitHub Copilot's cloud agent before it starts working:
+# uv, the project's Python and the locked dependencies, so `make check` and the hooks
+# in .github/hooks/ work. Copilot only uses the `copilot-setup-steps` job, and only from
+# the default branch; these triggers just validate the file when it changes.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/copilot-setup-steps.yml, .github/actions/setup-uv/**]
+  pull_request:
+    branches: [main]
+    paths: [.github/workflows/copilot-setup-steps.yml, .github/actions/setup-uv/**]
+
+permissions: {}
+
+jobs:
+  # The job MUST be named `copilot-setup-steps` or Copilot ignores it.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read # clone the repository to install its dependencies
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-uv

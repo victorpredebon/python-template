@@ -1,16 +1,17 @@
 # AGENTS.md
 
-Instructions for AI coding agents (Claude Code, Codex, Copilot, Cursor, ...) working in this
+Instructions for AI coding agents (Claude Code, Codex, Copilot, Cursor, Gemini, ...) working in this
 repository. Humans should follow them too. Read this file before changing anything.
 
 ## Project
 
-Python 3.14 template managed with Poetry. Installable `src/` layout:
+Python template (3.12+, developed on 3.14) managed with [uv](https://docs.astral.sh/uv/). Installable `src/` layout:
 
 - `src/calculator/` — the package (`cli.py` is the `calculator` console entry point)
 - `tests/` — pytest suite (`test_*.py`, mirrors the package)
-- `.github/workflows/ci.yml` — CI/CD: lint, tests (Linux/Windows/macOS), audit, build, release
+- `.github/workflows/ci.yml` — CI/CD: lint, tests (Python 3.12–3.14, Linux/Windows/macOS), audit, build, release
 - `pyproject.toml` — single source of configuration (deps, ruff, mypy, pytest, coverage, release)
+- `.agents/hooks/` — guardrail hooks shared by every coding agent (see "Agent support")
 
 ## Commands
 
@@ -20,13 +21,40 @@ make format      # auto-fix lint and format
 make check       # all hooks (ruff, mypy, architecture, dead code, duplication, ast-grep),
                  # tests + coverage, diff coverage, audit, deptry (same gates as CI)
 make build       # build sdist + wheel into dist/ and validate them
+make docker      # build the production image (Dockerfile) and run it
 make mutation    # mutation testing: every mutant must be caught by a test
 make run         # run the app
 ```
 
 Always run `make check` before declaring a task done, and report its real result.
-In Claude Code, `.claude/settings.json` runs the fast gates automatically when you try to
-finish with changed code, and blocks skipping git hooks, force pushes and pushes to `main`.
+
+## Agent support
+
+This file is the only source of instructions for every agent. Codex, Cursor, GitHub
+Copilot, Jules, Amp and Zed read it directly; Claude Code reads it through `CLAUDE.md`
+and Gemini CLI through `.gemini/settings.json`. Don't add agent-specific rule files that
+repeat or contradict it.
+
+Agents with hooks run the same scripts from `.agents/hooks/`; each agent's config only
+points at them (`lib.sh` adapts the answer to the agent's hook protocol):
+
+| Hook | When | What it does |
+|------|------|--------------|
+| `session-start.sh` | session starts | `uv sync --locked`, so tools work from the first prompt |
+| `guard_bash.py` | before a shell command | blocks skipping git hooks, force pushes and pushes to `main` |
+| `lint-file.sh` | after a file edit | `ruff check --fix` + `ruff format`; fix what it reports right away |
+| `quality-gates.sh` | agent tries to finish | lint, mypy and tests if code changed; keep working until they pass |
+
+| Agent | Config |
+|-------|--------|
+| Claude Code | `.claude/settings.json` (also read by Copilot CLI) |
+| Codex | `.codex/hooks.json` (needs the project to be trusted) |
+| Gemini CLI | `.gemini/settings.json` |
+| GitHub Copilot cloud agent | `.github/hooks/agent-hooks.json` + `.github/workflows/copilot-setup-steps.yml` |
+
+Cloud agents and editors that use dev containers get a ready environment from
+`.devcontainer/`. Agents without hooks get the same checks from the git hooks (`make setup-pre-commit`) and CI.
+Never rely on a hook: CI enforces every rule.
 
 ## How to work
 
@@ -59,17 +87,19 @@ finish with changed code, and blocks skipping git hooks, force pushes and pushes
 - **Style:** Ruff with every rule enabled, single quotes, 88 columns. Let `make format` fix style.
 - **Types:** mypy strict. Every function is fully annotated; prefer precise types over `Any`.
 - **Tests:** every behavior change comes with tests. Coverage must stay ≥ 80% (branch coverage).
-  Prefer property-based tests (Hypothesis) for pure functions.
+  Prefer property-based tests (Hypothesis) for pure functions. pytest runs strict: register
+  new markers under `[tool.pytest]`, and fix warnings instead of filtering them. Tests can't
+  use the network (pytest-socket): replace HTTP clients and LLM APIs with fakes.
 - **Architecture:** module dependencies follow the import-linter contracts in
   `pyproject.toml` (`calc` is pure logic; only `cli` does I/O). Add a contract when you add a layer.
-- **Patterns:** generic best practices live as ast-grep rules in `rules/` (tests, error
+- **Patterns:** generic best practices live as ast-grep rules in `rules/` (tests, secrets, error
   handling, logging, types, data structures such as `deque`, `Counter`, `defaultdict`),
   each with examples in `rule-tests/`. Rules use code context (`rule-utils/`), never file
   paths. When review finds a pattern worth enforcing, propose a rule instead of a comment.
 - **No dead or duplicated code:** vulture and jscpd fail on unused definitions and copy-paste.
   Every changed line must be covered by tests (`make diff-cover`).
-- **Dependencies:** add them with `poetry add` (runtime) or `poetry add --group dev` and commit
-  the updated `poetry.lock`. Never edit `poetry.lock` by hand.
+- **Dependencies:** add them with `uv add` (runtime) or `uv add --group dev` and commit
+  the updated `uv.lock`. Never edit `uv.lock` by hand. Run tools with `uv run`.
 
 ## Never
 

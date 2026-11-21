@@ -1,66 +1,72 @@
-.PHONY: help install run lint format typecheck tests coverage diff-cover audit deps check build mutation pre-commit setup-pre-commit pre-commit-update release clean
+.PHONY: help install lock run docker lint format typecheck tests coverage diff-cover audit deps check build mutation pre-commit setup-pre-commit pre-commit-update release clean
 
 help: ## Display this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "} ; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-install: ## Install dependencies
-	poetry install
+install: ## Install dependencies (creates .venv; uv fetches the Python in .python-version)
+	uv sync --locked
+
+lock: ## Update uv.lock after editing dependencies in pyproject.toml
+	uv lock
 
 run: ## Run the application
-	poetry run calculator
+	uv run calculator
+
+docker: ## Build the production image and run it
+	docker build --tag calculator .
+	docker run --rm calculator
 
 lint: ## Lint code (no auto-fix)
-	poetry run ruff check --no-fix
-	poetry run ruff format --check
+	uv run ruff check --no-fix
+	uv run ruff format --check
 
 format: ## Auto-fix lint issues and format code
-	poetry run ruff check --fix
-	poetry run ruff format
+	uv run ruff check --fix
+	uv run ruff format
 
 typecheck: ## Run static type checking
-	poetry run mypy
+	uv run mypy
 
 tests: ## Run tests in parallel
-	poetry run pytest -n auto
+	uv run pytest -n auto
 
 coverage: ## Run tests with coverage (threshold in pyproject.toml)
-	poetry run pytest -n auto --cov --cov-report=term-missing --cov-report=html --cov-report=xml
+	uv run pytest -n auto --cov --cov-report=term-missing --cov-report=html --cov-report=xml
 
 diff-cover: ## Every line changed vs origin/main must be covered (run after coverage)
-	poetry run diff-cover coverage.xml --config-file pyproject.toml
+	uv run diff-cover coverage.xml --config-file pyproject.toml
 
 audit: ## Scan dependencies for known vulnerabilities
-	poetry run pip-audit --skip-editable
+	uv run pip-audit --skip-editable
 
 deps: ## Check for unused, missing and transitive dependencies
-	poetry run deptry .
+	uv run deptry .
 
 check: pre-commit coverage diff-cover audit deps ## Run every quality gate (same as CI)
 
 mutation: ## Mutation testing: fails if any mutant survives (an untested behavior)
-	poetry run mutmut run
-	poetry run mutmut export-cicd-stats
-	@poetry run python -c "import json, sys; s = json.load(open('mutants/mutmut-cicd-stats.json')); bad = s['survived'] + s['no_tests'] + s['suspicious'] + s['timeout']; print(f\"{s['killed']}/{s['total']} mutants killed, {bad} not caught\"); sys.exit(1 if bad else 0)"
+	uv run mutmut run
+	uv run mutmut export-cicd-stats
+	@uv run python -c "import json, sys; s = json.load(open('mutants/mutmut-cicd-stats.json')); bad = s['survived'] + s['no_tests'] + s['suspicious'] + s['timeout']; print(f\"{s['killed']}/{s['total']} mutants killed, {bad} not caught\"); sys.exit(1 if bad else 0)"
 
 build: ## Build sdist + wheel into dist/ and validate their metadata
 	rm -rf dist
-	poetry install --with build
-	poetry check --strict
-	poetry build
-	poetry run twine check --strict dist/*
+	uv sync --locked --group build
+	uv build
+	uv run twine check --strict dist/*
 
 pre-commit: ## Run pre-commit
-	poetry run pre-commit run --all-files
+	uv run pre-commit run --all-files
 
 setup-pre-commit: ## Install git hooks (pre-push + commit-msg)
-	poetry run pre-commit install
+	uv run pre-commit install
 
 pre-commit-update: ## Update pre-commit hooks
-	poetry run pre-commit autoupdate
+	uv run pre-commit autoupdate
 
 release: ## Bump version, update CHANGELOG and tag locally (no push)
-	poetry install --with release
-	poetry run semantic-release version --no-push --no-vcs-release
+	uv sync --locked --group release
+	uv run semantic-release version --no-push --no-vcs-release
 
 clean: ## Clean build artifacts and caches
 	find . -type d -name "__pycache__" -exec rm -rf {} +

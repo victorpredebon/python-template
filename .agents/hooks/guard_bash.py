@@ -1,6 +1,7 @@
 """PreToolUse hook for Bash: block git commands that skip checks or rewrite history.
 
-Exit code 2 blocks the call and shows stderr to Claude. Only command segments that
+Exit code 2 blocks the call and shows stderr to the agent (Claude Code, Codex,
+Gemini CLI and Copilot all treat it as a deny). Only command segments that
 start with `git` are inspected, so text that merely mentions these flags is allowed.
 """
 
@@ -59,7 +60,7 @@ def main() -> int:
     for segment in SEGMENT_SEPARATORS.split(command):
         args = git_arguments(segment)
         if args is not None and (reason := violation(args)):
-            sys.stderr.write(f'Blocked by .claude/hooks/guard_bash.py: {reason}.\n')
+            sys.stderr.write(f'Blocked by .agents/hooks/guard_bash.py: {reason}.\n')
             return 2
     return 0
 

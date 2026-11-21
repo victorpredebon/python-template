@@ -1,0 +1,39 @@
+name: Setup uv and Python
+description: Install a pinned uv, the project's Python and the locked dependencies, optionally with a cached uv cache.
+
+inputs:
+  install-args:
+    description: Extra arguments for `uv sync` (e.g. `--only-group release --no-install-project`).
+    required: false
+    default: ""
+  python-version:
+    description: Python version to use. Defaults to the one in .python-version.
+    required: false
+    default: ""
+  uv-version:
+    description: uv version to install (keep within `required-version` in pyproject.toml).
+    required: false
+    default: "0.11.32"
+  cache:
+    description: Cache uv's package cache. Disable in jobs that produce release artifacts (cache poisoning).
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      with:
+        version: ${{ inputs.uv-version }}
+        python-version: ${{ inputs.python-version }}
+        enable-cache: ${{ inputs.cache }}
+        cache-dependency-glob: uv.lock
+
+    - name: Install dependencies
+      shell: bash
+      env:
+        INSTALL_ARGS: ${{ inputs.install-args }}
+      # --locked fails if uv.lock is out of date with pyproject.toml instead of
+      # silently re-resolving. INSTALL_ARGS is intentionally unquoted so it splits
+      # into separate arguments.
+      run: uv sync --locked ${INSTALL_ARGS}

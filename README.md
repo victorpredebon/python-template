@@ -6,7 +6,7 @@
 
 Scaffold production-ready Python projects in seconds. Clone, run `make install`, and start shipping — linting, formatting, type checking, testing, and commit conventions already wired up.
 
-[![Python Version](https://img.shields.io/badge/python-3.14+-blue.svg)](https://python.org)
+[![Python Version](https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Linting: Ruff](https://img.shields.io/badge/linting-ruff-yellow)](https://github.com/astral-sh/ruff)
 [![Formatting: Ruff](https://img.shields.io/badge/formatting-ruff-black)](https://github.com/astral-sh/ruff)
@@ -23,32 +23,33 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 
 | Tool | Purpose |
 |------|---------|
-| 🐍 **Python 3.14+** | Latest stable Python; Ruff's `UP` rules keep syntax modern |
-| 📦 **Poetry** | Reproducible builds with pinned lockfile, local `.venv` and PEP 735 dependency groups |
+| 🐍 **Python 3.12 – 3.14** | Developed on 3.14, tested on every supported version; Ruff and mypy target the oldest so code stays compatible |
+| 📦 **uv** | One fast tool for Python versions, virtualenvs and a cross-platform lockfile (`uv.lock`), with PEP 735 dependency groups, the `uv_build` backend and a 7-day cooldown on new releases (`exclude-newer`) |
 | ⚡ **Ruff** | Blazing-fast linter and formatter — replaces `flake8`, `isort`, and `black` in one tool |
 | 🔍 **MyPy** | Strict static type checking and type safety enforcement |
-| 🧪 **Pytest + pytest-cov** | Parallel test suite with branch coverage and an 80% minimum coverage gate |
+| 🧪 **Pytest + pytest-cov** | Parallel test suite in strict mode (unknown markers, unexpected passes and warnings are errors) and without network access (pytest-socket: no test calls a real API or LLM by accident), with branch coverage and an 80% minimum coverage gate |
 | 🔒 **pre-commit** | Code quality hooks sourced from the project's own virtualenv — zero version drift |
 | 📐 **Commitizen** | Enforces [Conventional Commits](https://www.conventionalcommits.org) on every commit message |
-| 🛡️ **pip-audit** | Scans `poetry.lock` for dependencies with known CVEs |
+| 🛡️ **pip-audit** | Scans the locked environment for dependencies with known CVEs |
 | 🧹 **deptry** | Detects unused, missing, and transitive dependencies in `pyproject.toml` |
 | 🚀 **python-semantic-release** | Automates versioning and changelog generation from Conventional Commits (optional `release` group, installed only where it runs) |
 | 🔐 **Hardened CI/CD** | Actions pinned by SHA, least-privilege tokens, zizmor + actionlint + CodeQL on the workflows, OpenSSF Scorecard, dependency review, Dependabot cooldown |
 | 📦 **Signed releases** | Wheel + sdist built in an unprivileged job, smoke-tested, with CycloneDX SBOM, checksums and SLSA build provenance attached to every GitHub release |
-| 🤖 **AI-agent ready** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
-| 🏛️ **Deterministic design checks** | import-linter architecture contracts, vulture (dead code), jscpd (duplication), diff-cover (100% on changed lines) and 16 generic ast-grep rules (tests, error handling, logging, types, data structures) |
+| 🤖 **Any coding agent** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, Gemini CLI, Jules, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
+| 🏛️ **Deterministic design checks** | import-linter architecture contracts, vulture (dead code), jscpd (duplication), diff-cover (100% on changed lines) and 18 generic ast-grep rules (tests, security, error handling, logging, types, data structures) |
 | 🧬 **Hypothesis + mutmut** | Property-based tests for edge cases, and mutation testing that proves tests notice when code is wrong (coverage alone doesn't) |
 | 🛂 **Gate-bypass detection** | Suppression comments (`noqa`, `type: ignore`, `ast-grep-ignore`, `pragma: no cover`) are banned outright; skipped tests and gate config changes need a code owner's `allow-gate-change` label |
 | 🧑‍⚖️ **Independent AI review** | Optional Claude reviewer (read-only, comments only) focused on bugs, unneeded code and weak tests |
-| 🪝 **Claude Code hooks** | `.claude/settings.json` runs the gates before an agent finishes and blocks skipping hooks / force pushes |
+| 🐳 **Docker + dev container** | Multi-stage production image (uv, no dev tools or sources, non-root user), built and smoke-tested in CI; a dev container with uv, the dependencies and git hooks ready for VS Code, Codespaces and cloud agents |
+| 🪝 **Agent hooks** | One set of scripts in `.agents/hooks/` wired into Claude Code, Codex, Gemini CLI and GitHub Copilot: install dependencies at session start, lint every edited file, block skipping git hooks / force pushes, run the gates before the agent finishes |
 
 ---
 
 ## 🚀 Why this template?
 
 - **Instant scaffold** — `make install` is all you need. No manual wiring, no hunting for config examples.
-- **Reproducible builds** — Poetry lockfile + local virtualenv ensure every developer and CI run uses the exact same dependency versions.
-- **Version-locked tooling** — pre-commit hooks run via `poetry run`, so the linter, formatter, and type checker in hooks always match `poetry.lock`. No drift, ever.
+- **Reproducible builds** — `uv.lock` + local virtualenv ensure every developer and CI run uses the exact same dependency versions; CI fails if the lockfile is out of date (`uv sync --locked`).
+- **Version-locked tooling** — pre-commit hooks run via `uv run`, so the linter, formatter, and type checker in hooks always match `uv.lock`. No drift, ever.
 - **Quality gates enforced** — Ruff, MyPy, and an 80% coverage threshold block bad code before it hits the repo.
 - **Conventional Commits baked in** — Commitizen validates every commit message, keeping changelogs and versioning automatable from day one.
 - **Scalable project structure** — installable `src/` layout with a console entry point and `py.typed`, ready to grow or publish.
@@ -60,8 +61,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 
 ### Prerequisites
 
-- Python 3.14+
-- [Poetry](https://python-poetry.org/docs/#installation)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) — it installs the Python version in `.python-version` for you
 
 ### Use this template
 
@@ -86,8 +86,8 @@ make install
 ### Run
 
 ```bash
-make run                      # same as: poetry run calculator
-poetry run python -m calculator
+make run                      # same as: uv run calculator
+uv run python -m calculator
 ```
 
 ### Make it yours (rename checklist)
@@ -95,11 +95,11 @@ poetry run python -m calculator
 After creating your repository from the template, replace the example names:
 
 1. **Package** — rename `src/calculator/` to your package name and update its imports in `src/` and `tests/`.
-2. **`pyproject.toml`** — `name`, `description`, `authors`, `[project.scripts]` (command name and `module:function`), `packages` under `[tool.poetry]` and `source_pkgs` under `[tool.coverage.run]`.
+2. **`pyproject.toml`** — `name`, `description`, `authors`, `[project.scripts]` (command name and `module:function`), `module-name` under `[tool.uv.build-backend]` and `source_pkgs` under `[tool.coverage.run]`.
 3. **Version history** — reset `version` to `0.1.0` (or `1.0.0`) and clear `CHANGELOG.md`.
 4. **Ownership** — `LICENSE` holder, `[project.urls]` in `pyproject.toml`, `.github/CODEOWNERS`, the links in `SECURITY.md` and `.github/ISSUE_TEMPLATE/config.yml`, and this README (badges, star history, author).
 5. **Security model** — delete or rewrite `SECURITY_MODEL.md` for your project.
-6. Run `poetry lock && make install && make check`.
+6. Run `make lock install check`.
 
 Search for leftovers with `git grep -n -i -e calculator -e python-template -e predebon`.
 
@@ -133,6 +133,7 @@ make check               # every quality gate, same as CI
 make diff-cover          # every changed line must be covered (after make coverage)
 make mutation            # mutation testing (fails if any mutant survives)
 make build               # build sdist + wheel into dist/ and validate them
+make docker              # build the production image and run it
 make release             # bump version, update CHANGELOG and tag locally (no push)
 make pre-commit          # run all pre-commit hooks
 make setup-pre-commit    # install git hooks (commit-msg + pre-push)
@@ -142,7 +143,7 @@ make clean               # clean caches and build artifacts
 
 ### Pre-commit hooks
 
-The Python tools run from the project's virtualenv via `poetry run` — no separately installed binaries, no version mismatch between your editor, CI, and git hooks. Hook stages are declared in `.pre-commit-config.yaml` itself (`default_install_hook_types`), so `make setup-pre-commit` and a plain `pre-commit install` behave the same:
+The Python tools run from the project's virtualenv via `uv run` — no separately installed binaries, no version mismatch between your editor, CI, and git hooks. Hook stages are declared in `.pre-commit-config.yaml` itself (`default_install_hook_types`), so `make setup-pre-commit` and a plain `pre-commit install` behave the same:
 
 | Hook | Stage | What it does |
 |------|-------|-------------|
@@ -175,10 +176,11 @@ Runs on pull requests, pushes to `main`, the merge queue, weekly (to catch new C
 | Job | When | What it does |
 |-----|------|--------------|
 | **Lint & type-check** | always | pre-commit: Ruff, mypy, actionlint, zizmor, file checks |
-| **Test** | always | pytest on Linux, Windows and macOS; coverage gate; on PRs, 100% coverage of changed lines (diff-cover); JUnit/coverage reports as artifacts and in the job summary |
+| **Test** | always | pytest on Python 3.12, 3.13 and 3.14 (Linux) and on Windows and macOS; coverage gate; on PRs, 100% coverage of changed lines (diff-cover); JUnit/coverage reports as artifacts and in the job summary |
 | **Dependency audit** | always | `pip-audit` (blocking) and `deptry` |
 | **Dependency review** | PRs | Blocks PRs that add dependencies with known vulnerabilities (moderate+) |
-| **Build package** | always | Plans the next version, builds sdist + wheel, `poetry check --strict`, `twine check --strict`, smoke-tests the wheel in a clean venv, generates a CycloneDX SBOM and `SHA256SUMS.txt` |
+| **Container images** | always | Builds the production image, runs it and checks it doesn't run as root; builds the dev container image |
+| **Build package** | always | Plans the next version, builds sdist + wheel with `uv build`, `twine check --strict`, smoke-tests the wheel in a clean venv, generates a CycloneDX SBOM and `SHA256SUMS.txt` |
 | **CI OK** | always | Single aggregated status — make it the only required check in your branch ruleset |
 | **Release** | push to `main` with releasable commits | Verifies the artifacts, signs SLSA build provenance, creates the `vX.Y.Z` tag and GitHub release, and uploads wheel, sdist, SBOM and checksums |
 
@@ -201,7 +203,7 @@ Since `main` is protected (changes only via pull request), releases run with `--
 | Job | What it does |
 |-----|--------------|
 | **Conventional commits** | Validates the PR title (the squash-merge commit) and every commit with Commitizen |
-| **Quality-gate changes** | **Always** fails if the PR adds a suppression comment (`# noqa`, `# ruff: noqa`, `# type: ignore`, `# pyright: ignore`, `# mypy: ignore-errors`, `# ast-grep-ignore`, `# pragma: no cover`), with no approval possible: fix the code, or fix the rule in its own PR (a pre-commit hook enforces the same locally). Fails if the PR adds skipped/xfail tests or changes gate configuration (coverage threshold, Ruff/mypy rules, hook stages, workflow severities), unless a **human code owner** added the `allow-gate-change` label. Labels added by bots don't count, and code owners are read from the base branch, so an agent can't approve its own bypass. The approval covers what was reviewed: a later push that changes gates again (or rewrites history) removes the label automatically. Changes to the checker script and new `write` permissions in workflows count as gate changes too. |
+| **Quality-gate changes** | **Always** fails if the PR adds a suppression comment (`# noqa`, `# ruff: noqa`, `# type: ignore`, `# pyright: ignore`, `# mypy: ignore-errors`, `# ast-grep-ignore`, `# pragma: no cover`), with no approval possible: fix the code, or fix the rule in its own PR (a pre-commit hook enforces the same locally). Fails if the PR adds skipped/xfail tests, lets a test use the network (`enable_socket`) or changes gate configuration (coverage threshold, Ruff/mypy rules, hook stages, workflow severities), unless a **human code owner** added the `allow-gate-change` label. Labels added by bots don't count, and code owners are read from the base branch, so an agent can't approve its own bypass. The approval covers what was reviewed: a later push that changes gates again (or rewrites history) removes the label automatically. Changes to the checker script and new `write` permissions in workflows count as gate changes too. |
 
 It runs separately from `ci.yml` so editing the title or adding the label re-checks in seconds.
 
@@ -233,6 +235,8 @@ ast-grep rules (generic Python practices that Ruff doesn't cover). They find the
 | Tests | `no-weak-test-assertions` | `is not None` / `isinstance` / `len(x) > 0` pass for almost any wrong result |
 | Tests | `mock-requires-spec` | Mocks without `autospec`/`spec` accept calls the real object would reject ([unittest.mock docs](https://docs.python.org/3/library/unittest.mock.html#autospeccing)) |
 | Tests | `no-sleep-in-tests` | Sleeps make tests slow and flaky |
+| Security | `no-secrets-in-logs` | API keys, tokens and passwords must never reach logs, which end up in CI output, aggregators and LLM traces ([OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html)) |
+| Security | `no-hardcoded-api-keys` | Provider key formats (`sk-`, `ghp_`, `AKIA`, `hf_`, ...) and literal `api_key=` arguments: Ruff's S105/S106 only cover `password`/`token` names |
 | Errors | `no-swallowed-exceptions` | "Errors should never pass silently" ([PEP 20](https://peps.python.org/pep-0020/)); only the entry point may log and stop |
 | Errors | `exit-only-in-main` | Code below the entry point raises; only `main` exits the process |
 | Completeness | `no-stub-implementations` | `pass` / `...` / `NotImplementedError` bodies outside `@abstractmethod`, `@overload` and `Protocol` |
@@ -283,7 +287,7 @@ python-template/
 │   ├── test_calc.py
 │   └── test_cli.py
 ├── .github/
-│   ├── actions/setup-poetry/ # Shared CI setup (composite action)
+│   ├── actions/setup-uv/     # Shared CI setup (composite action)
 │   ├── workflows/
 │   │   ├── ci.yml            # Quality gates, packaging and release
 │   │   ├── pr-policy.yml     # PR title/commits and gate-bypass checks
@@ -298,15 +302,18 @@ python-template/
 │   ├── PULL_REQUEST_TEMPLATE.md
 │   └── dependabot.yml
 ├── pyproject.toml            # Project config (deps, ruff, mypy, pytest, coverage)
-├── poetry.toml               # Poetry settings (virtualenv created inside project)
-├── poetry.lock               # Pinned dependencies
+├── uv.lock                   # Pinned dependencies (cross-platform)
+├── .python-version           # Python version uv installs and uses
 ├── .pre-commit-config.yaml   # Pre-commit hooks
 ├── rules/ + rule-tests/      # ast-grep rules and their tests (sgconfig.yml)
 ├── rule-utils/               # Shared ast-grep contexts: in a test, in the entry point
 ├── .jscpd.json               # Duplicated-code detection
-├── .claude/                  # Claude Code settings and hooks (guard + quality gates)
+├── .agents/hooks/            # Agent hooks shared by every agent (setup, lint, guard, gates)
+├── .claude/ .codex/ .gemini/ # Per-agent configs that point at .agents/hooks/
 ├── AGENTS.md                 # Instructions for AI coding agents (CLAUDE.md imports it)
 ├── SECURITY.md               # How to report vulnerabilities
+├── Dockerfile                # Production image (+ .dockerignore)
+├── .devcontainer/            # Dev container: uv + dependencies + git hooks
 └── Makefile                  # Dev commands
 ```
 
@@ -320,20 +327,20 @@ python-template/
 
 ## ❓ FAQ
 
-**How do I use this without Poetry?**
-Install dependencies with pip and adapt commands manually. Poetry is strongly recommended for reproducible builds and lockfile management.
+**Why uv instead of Poetry or pip?**
+uv replaces pip, venv, pyenv and Poetry with one tool that is 10-100x faster. It installs the right Python by itself, its lockfile is cross-platform, and it handles hard cases such as PyTorch CPU/CUDA indexes (`[tool.uv.sources]`). Without uv, `pip install -e . --group dev` (pip 25.1+) works, but without the lockfile guarantees.
 
-**Why Python 3.14?**
-Targets the latest stable Python for best performance and modern language features. To downgrade, edit `.python-version`, plus `requires-python` and `target-version` in `pyproject.toml`.
+**Which Python versions are supported?**
+3.12 to 3.14. You develop on the version in `.python-version` (3.14); CI runs the tests on every supported version, and Ruff and mypy target the oldest one (3.12), so you can't use syntax it lacks by accident. Many ML/AI libraries support a new Python months after its release, so a range is safer than "latest only". An application that only ever runs on one version can narrow `requires-python`, `target-version`, `python_version` and the CI matrix to it.
 
 **Can I use this as a cookiecutter alternative?**
 Yes. Use the GitHub template button to scaffold a new repo instantly, or pull via Git. There's no generator step — the structure is ready to rename and adapt.
 
-**What is `poetry.toml`?**
-It pins `virtualenvs.in-project = true`, so Poetry always creates `.venv/` inside the project root. This makes the environment easy to locate for editors, type checkers, and `poetry run`.
+**How do I add a dependency?**
+`uv add <package>` (runtime) or `uv add --group dev <package>` (tooling). Both update `pyproject.toml` and `uv.lock`; commit both. Releases younger than 7 days are ignored (`exclude-newer` in `[tool.uv]`).
 
-**Why do pre-commit hooks use `poetry run` instead of remote repos?**
-Remote repos pin their own tool versions independently of your project. Using `repo: local` with `poetry run` means every hook runs at the exact version in `poetry.lock` — the same binary your editor and CI use.
+**Why do pre-commit hooks use `uv run` instead of remote repos?**
+Remote repos pin their own tool versions independently of your project. Using `repo: local` with `uv run` means every hook runs at the exact version in `uv.lock` — the same binary your editor and CI use.
 
 **How do I enable pre-commit hooks?**
 Run `make setup-pre-commit`. This installs hooks for the `commit-msg` (Commitizen) and `pre-push` (Ruff, MyPy, etc.) stages.
@@ -344,7 +351,7 @@ They have separate jobs: Commitizen only validates commit messages locally (`com
 **How do AI coding agents fit in?**
 `AGENTS.md` is the shared instruction file most agents read automatically (`CLAUDE.md` just imports it). It lists the commands, conventions and things an agent must never do (weaken gates, touch workflows as a side effect, pin Actions by tag). Nothing relies on the agent obeying, though: every rule that matters is enforced by CI, CODEOWNERS and the branch ruleset, and the PR template asks authors to disclose AI assistance.
 
-In Claude Code, `.claude/settings.json` adds local guardrails: a Stop hook runs lint, mypy and tests whenever the agent tries to finish with changed code (failures go back to the agent); a PreToolUse hook blocks git commands that skip hooks, force pushes and pushes to `main`; editing `.github/`, `.claude/` and `AGENTS.md` asks for confirmation; and `.env`/key files can't be read. Personal overrides go in `.claude/settings.local.json` (git-ignored).
+Agents that support hooks (Claude Code, Codex, Gemini CLI, GitHub Copilot CLI and cloud agent) run the same scripts from `.agents/hooks/`: a session-start hook runs `uv sync --locked`, so even a fresh cloud session has the tools ready; after each edit, Ruff fixes and formats the file and sends back what it can't fix, so mistakes are corrected at once rather than at the end; before a shell command, git commands that skip hooks, force pushes and pushes to `main` are blocked; and when the agent tries to finish with changed code, lint, mypy and tests run and failures go back to it. Each agent has a small config pointing at the scripts (`.claude/settings.json`, `.codex/hooks.json`, `.gemini/settings.json`, `.github/hooks/`), and `.github/workflows/copilot-setup-steps.yml` prepares Copilot's cloud environment. In Claude Code, editing `.github/`, `.claude/`, `.agents/` and `AGENTS.md` also asks for confirmation, and `.env`/key files can't be read; personal overrides go in `.claude/settings.local.json` (git-ignored).
 
 **Does it publish to PyPI?**
 No, packages are attached to GitHub releases. To publish to PyPI, add a job after **Release** that downloads the `dist` artifact and runs `pypa/gh-action-pypi-publish` with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC, no API token).

@@ -1,12 +1,9 @@
 import logging
 import runpy
-from typing import TYPE_CHECKING
+
+import pytest
 
 from calculator import cli
-
-
-if TYPE_CHECKING:
-    import pytest
 
 
 EXPECTED_MESSAGES = ['Hello from python-template!', 'Result: 3']

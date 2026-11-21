@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 
-HOOK = Path(__file__).parents[1] / '.claude' / 'hooks' / 'guard_bash.py'
+HOOK = Path(__file__).parents[1] / '.agents' / 'hooks' / 'guard_bash.py'
 BLOCKED = 2
 ALLOWED = 0
 

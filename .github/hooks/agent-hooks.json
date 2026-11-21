@@ -1,0 +1,47 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "bash": "[ -z \"${COPILOT_AGENT_PROMPT:-}\" ] || .agents/hooks/lint-file.sh",
+        "env": {
+          "AGENT_HOOK_FORMAT": "copilot"
+        },
+        "matcher": "Edit|Write",
+        "timeoutSec": 60,
+        "type": "command"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "bash": "[ -z \"${COPILOT_AGENT_PROMPT:-}\" ] || python3 .agents/hooks/guard_bash.py",
+        "env": {
+          "AGENT_HOOK_FORMAT": "copilot"
+        },
+        "matcher": "Bash",
+        "timeoutSec": 30,
+        "type": "command"
+      }
+    ],
+    "SessionStart": [
+      {
+        "bash": "[ -z \"${COPILOT_AGENT_PROMPT:-}\" ] || .agents/hooks/session-start.sh",
+        "env": {
+          "AGENT_HOOK_FORMAT": "copilot"
+        },
+        "timeoutSec": 300,
+        "type": "command"
+      }
+    ],
+    "Stop": [
+      {
+        "bash": "[ -z \"${COPILOT_AGENT_PROMPT:-}\" ] || .agents/hooks/quality-gates.sh",
+        "env": {
+          "AGENT_HOOK_FORMAT": "copilot"
+        },
+        "timeoutSec": 600,
+        "type": "command"
+      }
+    ]
+  },
+  "version": 1
+}
