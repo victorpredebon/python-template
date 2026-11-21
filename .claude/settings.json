@@ -5,7 +5,7 @@
       {
         "hooks": [
           {
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lint-file.sh",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}\"/.agents/hooks/lint-file.sh",
             "timeout": 60,
             "type": "command"
           }
@@ -17,7 +17,7 @@
       {
         "hooks": [
           {
-            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard_bash.py",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR:-.}\"/.agents/hooks/guard_bash.py",
             "type": "command"
           }
         ],
@@ -28,7 +28,7 @@
       {
         "hooks": [
           {
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}\"/.agents/hooks/session-start.sh",
             "timeout": 300,
             "type": "command"
           }
@@ -40,7 +40,7 @@
       {
         "hooks": [
           {
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/quality-gates.sh",
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}\"/.agents/hooks/quality-gates.sh",
             "timeout": 600,
             "type": "command"
           }
@@ -54,7 +54,10 @@
       "Edit(/.claude/**)",
       "Edit(/AGENTS.md)",
       "Edit(/CLAUDE.md)",
-      "Edit(/.pre-commit-config.yaml)"
+      "Edit(/.pre-commit-config.yaml)",
+      "Edit(/.agents/**)",
+      "Edit(/.codex/**)",
+      "Edit(/.gemini/**)"
     ],
     "deny": [
       "Edit(/uv.lock)",

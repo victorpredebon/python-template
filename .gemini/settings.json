@@ -1,0 +1,59 @@
+{
+  "context": {
+    "fileName": [
+      "AGENTS.md"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "name": "install",
+            "type": "command",
+            "command": "AGENT_HOOK_FORMAT=gemini \"$GEMINI_PROJECT_DIR\"/.agents/hooks/session-start.sh",
+            "timeout": 300000
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": "^run_shell_command$",
+        "hooks": [
+          {
+            "name": "guard-git",
+            "type": "command",
+            "command": "AGENT_HOOK_FORMAT=gemini python3 \"$GEMINI_PROJECT_DIR\"/.agents/hooks/guard_bash.py",
+            "timeout": 30000
+          }
+        ]
+      }
+    ],
+    "AfterTool": [
+      {
+        "matcher": "^(write_file|replace)$",
+        "hooks": [
+          {
+            "name": "ruff",
+            "type": "command",
+            "command": "AGENT_HOOK_FORMAT=gemini \"$GEMINI_PROJECT_DIR\"/.agents/hooks/lint-file.sh",
+            "timeout": 60000
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "name": "quality-gates",
+            "type": "command",
+            "command": "AGENT_HOOK_FORMAT=gemini \"$GEMINI_PROJECT_DIR\"/.agents/hooks/quality-gates.sh",
+            "timeout": 600000
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Instructions for AI coding agents (Claude Code, Codex, Copilot, Cursor, ...) working in this
+Instructions for AI coding agents (Claude Code, Codex, Copilot, Cursor, Gemini, ...) working in this
 repository. Humans should follow them too. Read this file before changing anything.
 
 ## Project
@@ -11,6 +11,7 @@ Python template (3.12+, developed on 3.14) managed with [uv](https://docs.astral
 - `tests/` — pytest suite (`test_*.py`, mirrors the package)
 - `.github/workflows/ci.yml` — CI/CD: lint, tests (Python 3.12–3.14, Linux/Windows/macOS), audit, build, release
 - `pyproject.toml` — single source of configuration (deps, ruff, mypy, pytest, coverage, release)
+- `.agents/hooks/` — guardrail hooks shared by every coding agent (see "Agent support")
 
 ## Commands
 
@@ -25,10 +26,33 @@ make run         # run the app
 ```
 
 Always run `make check` before declaring a task done, and report its real result.
-In Claude Code, `.claude/settings.json` installs the dependencies when a session starts,
-runs Ruff on every Python file you edit (fix what it reports right away), runs the fast gates
-automatically when you try to finish with changed code, and blocks skipping git hooks, force
-pushes and pushes to `main`.
+
+## Agent support
+
+This file is the only source of instructions for every agent. Codex, Cursor, GitHub
+Copilot, Jules, Amp and Zed read it directly; Claude Code reads it through `CLAUDE.md`
+and Gemini CLI through `.gemini/settings.json`. Don't add agent-specific rule files that
+repeat or contradict it.
+
+Agents with hooks run the same scripts from `.agents/hooks/`; each agent's config only
+points at them (`lib.sh` adapts the answer to the agent's hook protocol):
+
+| Hook | When | What it does |
+|------|------|--------------|
+| `session-start.sh` | session starts | `uv sync --locked`, so tools work from the first prompt |
+| `guard_bash.py` | before a shell command | blocks skipping git hooks, force pushes and pushes to `main` |
+| `lint-file.sh` | after a file edit | `ruff check --fix` + `ruff format`; fix what it reports right away |
+| `quality-gates.sh` | agent tries to finish | lint, mypy and tests if code changed; keep working until they pass |
+
+| Agent | Config |
+|-------|--------|
+| Claude Code | `.claude/settings.json` (also read by Copilot CLI) |
+| Codex | `.codex/hooks.json` (needs the project to be trusted) |
+| Gemini CLI | `.gemini/settings.json` |
+| GitHub Copilot cloud agent | `.github/hooks/agent-hooks.json` + `.github/workflows/copilot-setup-steps.yml` |
+
+Agents without hooks get the same checks from the git hooks (`make setup-pre-commit`) and CI.
+Never rely on a hook: CI enforces every rule.
 
 ## How to work
 

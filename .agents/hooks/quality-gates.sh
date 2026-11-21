@@ -1,17 +1,12 @@
 #!/usr/bin/env bash
-# Stop hook: before Claude ends its turn, run the fast quality gates if Python code,
-# tests or dependencies changed. Exit code 2 sends the failures back to Claude, which
-# keeps working until they pass (Claude Code caps consecutive blocks).
+# Stop hook: before the agent ends its turn, run the fast quality gates if Python code,
+# tests or dependencies changed. Failures go back to the agent, which keeps working
+# until they pass (Claude Code and Copilot cap how many times in a row).
 set -uo pipefail
-
 cat > /dev/null # hook input (unused)
+source "$(dirname "$0")/lib.sh"
 
-# In CI (e.g. the Claude review workflow) this would run PR-controlled code.
-if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-  exit 0
-fi
-
-cd "${CLAUDE_PROJECT_DIR:-.}" || exit 1
+in_ci_review && exit 0
 
 if ! command -v uv > /dev/null || [[ ! -d .venv ]]; then
   echo "quality-gates hook: run 'make install' to enable the automatic checks." >&2
@@ -28,10 +23,7 @@ if [[ -z "${changed}" ]]; then
 fi
 
 if ! output="$(make lint typecheck tests 2>&1)"; then
-  {
-    echo "Quality gates failed. Fix the cause (do not weaken the check) before finishing:"
-    echo "${output}" | tail -n 60
-  } >&2
-  exit 2
+  reply stop "Quality gates failed. Fix the cause (do not weaken the check) before finishing:
+$(echo "${output}" | tail -n 60)"
 fi
 exit 0

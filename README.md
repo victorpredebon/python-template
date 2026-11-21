@@ -35,12 +35,12 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 🚀 **python-semantic-release** | Automates versioning and changelog generation from Conventional Commits (optional `release` group, installed only where it runs) |
 | 🔐 **Hardened CI/CD** | Actions pinned by SHA, least-privilege tokens, zizmor + actionlint + CodeQL on the workflows, OpenSSF Scorecard, dependency review, Dependabot cooldown |
 | 📦 **Signed releases** | Wheel + sdist built in an unprivileged job, smoke-tested, with CycloneDX SBOM, checksums and SLSA build provenance attached to every GitHub release |
-| 🤖 **AI-agent ready** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
+| 🤖 **Any coding agent** | `AGENTS.md` (read by Claude Code, Codex, Copilot, Cursor, Gemini CLI, Jules, ...) documents commands, conventions and hard rules; CI enforces everything an agent might skip locally |
 | 🏛️ **Deterministic design checks** | import-linter architecture contracts, vulture (dead code), jscpd (duplication), diff-cover (100% on changed lines) and 16 generic ast-grep rules (tests, error handling, logging, types, data structures) |
 | 🧬 **Hypothesis + mutmut** | Property-based tests for edge cases, and mutation testing that proves tests notice when code is wrong (coverage alone doesn't) |
 | 🛂 **Gate-bypass detection** | Suppression comments (`noqa`, `type: ignore`, `ast-grep-ignore`, `pragma: no cover`) are banned outright; skipped tests and gate config changes need a code owner's `allow-gate-change` label |
 | 🧑‍⚖️ **Independent AI review** | Optional Claude reviewer (read-only, comments only) focused on bugs, unneeded code and weak tests |
-| 🪝 **Claude Code hooks** | `.claude/settings.json` installs dependencies at session start (also in cloud sessions), lints every file the agent edits, runs the gates before it finishes and blocks skipping hooks / force pushes |
+| 🪝 **Agent hooks** | One set of scripts in `.agents/hooks/` wired into Claude Code, Codex, Gemini CLI and GitHub Copilot: install dependencies at session start, lint every edited file, block skipping git hooks / force pushes, run the gates before the agent finishes |
 
 ---
 
@@ -303,7 +303,8 @@ python-template/
 ├── rules/ + rule-tests/      # ast-grep rules and their tests (sgconfig.yml)
 ├── rule-utils/               # Shared ast-grep contexts: in a test, in the entry point
 ├── .jscpd.json               # Duplicated-code detection
-├── .claude/                  # Claude Code settings and hooks (setup, lint, guard, gates)
+├── .agents/hooks/            # Agent hooks shared by every agent (setup, lint, guard, gates)
+├── .claude/ .codex/ .gemini/ # Per-agent configs that point at .agents/hooks/
 ├── AGENTS.md                 # Instructions for AI coding agents (CLAUDE.md imports it)
 ├── SECURITY.md               # How to report vulnerabilities
 └── Makefile                  # Dev commands
@@ -343,7 +344,7 @@ They have separate jobs: Commitizen only validates commit messages locally (`com
 **How do AI coding agents fit in?**
 `AGENTS.md` is the shared instruction file most agents read automatically (`CLAUDE.md` just imports it). It lists the commands, conventions and things an agent must never do (weaken gates, touch workflows as a side effect, pin Actions by tag). Nothing relies on the agent obeying, though: every rule that matters is enforced by CI, CODEOWNERS and the branch ruleset, and the PR template asks authors to disclose AI assistance.
 
-In Claude Code, `.claude/settings.json` adds local guardrails: a SessionStart hook runs `uv sync --locked`, so even a fresh cloud session (Claude Code on the web) has the tools ready; a PostToolUse hook runs `ruff check --fix` and `ruff format` on each Python file the agent edits and sends back what Ruff can't fix, so mistakes are corrected at once rather than at the end; a Stop hook runs lint, mypy and tests whenever the agent tries to finish with changed code (failures go back to the agent); a PreToolUse hook blocks git commands that skip hooks, force pushes and pushes to `main`; editing `.github/`, `.claude/` and `AGENTS.md` asks for confirmation; and `.env`/key files can't be read. Personal overrides go in `.claude/settings.local.json` (git-ignored).
+Agents that support hooks (Claude Code, Codex, Gemini CLI, GitHub Copilot CLI and cloud agent) run the same scripts from `.agents/hooks/`: a session-start hook runs `uv sync --locked`, so even a fresh cloud session has the tools ready; after each edit, Ruff fixes and formats the file and sends back what it can't fix, so mistakes are corrected at once rather than at the end; before a shell command, git commands that skip hooks, force pushes and pushes to `main` are blocked; and when the agent tries to finish with changed code, lint, mypy and tests run and failures go back to it. Each agent has a small config pointing at the scripts (`.claude/settings.json`, `.codex/hooks.json`, `.gemini/settings.json`, `.github/hooks/`), and `.github/workflows/copilot-setup-steps.yml` prepares Copilot's cloud environment. In Claude Code, editing `.github/`, `.claude/`, `.agents/` and `AGENTS.md` also asks for confirmation, and `.env`/key files can't be read; personal overrides go in `.claude/settings.local.json` (git-ignored).
 
 **Does it publish to PyPI?**
 No, packages are attached to GitHub releases. To publish to PyPI, add a job after **Release** that downloads the `dist` artifact and runs `pypa/gh-action-pypi-publish` with [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC, no API token).

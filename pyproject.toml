@@ -96,7 +96,7 @@ fixable = ["ALL"]
 
 [tool.ruff.lint.per-file-ignores]
 # Standalone Claude Code hook scripts, run directly by path; not an importable package.
-".claude/hooks/*.py" = ["INP001"]
+".agents/hooks/*.py" = ["INP001"]
 "**/tests/**.py" = [
   "ANN",     # flake8-annotations (ANN)
   "PLR2004", # Magic value used in comparison
@@ -177,7 +177,7 @@ fail_under = 100
 # Type-check against the oldest supported Python; CI runs the tests on every version.
 python_version = "3.12"
 mypy_path = "src"
-files = ["src", "tests", ".claude/hooks"]
+files = ["src", "tests", ".agents/hooks"]
 strict = true
 
 
@@ -215,4 +215,4 @@ build-backend = "uv_build"
 source_paths = ["src/"]
 pytest_add_cli_args_test_selection = ["tests/"]
 pytest_add_cli_args = ["-p", "no:xdist"]
-also_copy = [".claude/hooks/"]
+also_copy = [".agents/hooks/"]
