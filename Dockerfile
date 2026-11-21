@@ -6,7 +6,7 @@
 
 ARG PYTHON_VERSION=3.14
 
-FROM ghcr.io/astral-sh/uv:0.11.32 AS uv
+FROM ghcr.io/astral-sh/uv:0.13.9 AS uv
 
 FROM python:${PYTHON_VERSION}-slim AS builder
 COPY --from=uv /uv /usr/local/bin/uv
