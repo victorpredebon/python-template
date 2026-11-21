@@ -86,7 +86,8 @@ Never rely on a hook: CI enforces every rule.
 - **Types:** mypy strict. Every function is fully annotated; prefer precise types over `Any`.
 - **Tests:** every behavior change comes with tests. Coverage must stay ≥ 80% (branch coverage).
   Prefer property-based tests (Hypothesis) for pure functions. pytest runs strict: register
-  new markers under `[tool.pytest]`, and fix warnings instead of filtering them.
+  new markers under `[tool.pytest]`, and fix warnings instead of filtering them. Tests can't
+  use the network (pytest-socket): replace HTTP clients and LLM APIs with fakes.
 - **Architecture:** module dependencies follow the import-linter contracts in
   `pyproject.toml` (`calc` is pure logic; only `cli` does I/O). Add a contract when you add a layer.
 - **Patterns:** generic best practices live as ast-grep rules in `rules/` (tests, error

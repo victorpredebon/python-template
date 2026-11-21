@@ -50,6 +50,7 @@ dev = [
   "import-linter>=2",
   "vulture>=2",
   "ast-grep-cli>=0.39",
+  "pytest-socket>=0.7",
 ]
 # Packaging checks and SBOM: `uv sync --group build`
 build = ["twine>=6", "cyclonedx-bom>=7"]
@@ -191,8 +192,10 @@ strict = true
 filterwarnings = ["error"]
 # importlib: tests never shadow each other or the installed package through
 # sys.path, so they run against the package as it is installed. -ra lists the
-# reason for every test that did not pass.
-addopts = ["--import-mode=importlib", "-ra"]
+# reason for every test that did not pass. --disable-socket (pytest-socket): tests
+# can't reach the network, so they are fast, deterministic and never call a real
+# API or LLM by accident; Unix sockets stay allowed for local IPC (asyncio, xdist).
+addopts = ["--import-mode=importlib", "-ra", "--disable-socket", "--allow-unix-socket"]
 
 
 [tool.coverage.run]

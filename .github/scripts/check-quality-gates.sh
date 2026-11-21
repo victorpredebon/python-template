@@ -15,12 +15,12 @@ LABEL="${OVERRIDE_LABEL:-allow-gate-change}"
 # Added Python comments that silence a check. Never allowed, not even with the label:
 # fix the code, or fix the rule in its own PR.
 suppression_pattern='#.*(noqa|type:[[:space:]]*ignore|pyright:[[:space:]]*ignore|mypy:[[:space:]]*ignore-errors|ast-grep-ignore|pragma:[[:space:]]*no[[:space:]]*cover)'
-# Added Python lines that skip tests. Sometimes legitimate (platform-specific), so a
-# code owner can approve them.
-code_pattern='pytest[.](mark[.](skip|skipif|xfail)|skip[(]|xfail[(]|importorskip[(])|unittest[.]skip'
+# Added Python lines that skip tests or let them reach the network. Sometimes
+# legitimate (platform-specific, an integration test), so a code owner can approve them.
+code_pattern='pytest[.](mark[.](skip|skipif|xfail|enable_socket|allow_hosts)|skip[(]|xfail[(]|importorskip[(])|unittest[.]skip|socket_enabled'
 # Added or removed configuration lines that tune a gate (incl. quoted rule codes)
 # or grant workflows write access.
-config_pattern='fail_under|ignore|strict|select|disable|stages|exclude|omit|severity|continue-on-error|threshold|min[A-Z_]|layers|forbidden|"[A-Z]+[0-9]+"|:[[:space:]]*write'
+config_pattern='fail_under|ignore|strict|select|disable|socket|stages|exclude|omit|severity|continue-on-error|threshold|min[A-Z_]|layers|forbidden|"[A-Z]+[0-9]+"|:[[:space:]]*write'
 config_paths=(pyproject.toml .pre-commit-config.yaml .github/zizmor.yml .github/workflows
   .github/actions .jscpd.json sgconfig.yml rules rule-utils)
 

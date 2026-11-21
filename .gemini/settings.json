@@ -5,52 +5,52 @@
     ]
   },
   "hooks": {
-    "SessionStart": [
+    "AfterAgent": [
       {
         "hooks": [
           {
-            "name": "install",
-            "type": "command",
-            "command": "AGENT_HOOK_FORMAT=gemini \"$GEMINI_PROJECT_DIR\"/.agents/hooks/session-start.sh",
-            "timeout": 300000
-          }
-        ]
-      }
-    ],
-    "BeforeTool": [
-      {
-        "matcher": "^run_shell_command$",
-        "hooks": [
-          {
-            "name": "guard-git",
-            "type": "command",
-            "command": "AGENT_HOOK_FORMAT=gemini python3 \"$GEMINI_PROJECT_DIR\"/.agents/hooks/guard_bash.py",
-            "timeout": 30000
+            "command": "AGENT_HOOK_FORMAT=gemini \"$GEMINI_PROJECT_DIR\"/.agents/hooks/quality-gates.sh",
+            "name": "quality-gates",
+            "timeout": 600000,
+            "type": "command"
           }
         ]
       }
     ],
     "AfterTool": [
       {
-        "matcher": "^(write_file|replace)$",
         "hooks": [
           {
-            "name": "ruff",
-            "type": "command",
             "command": "AGENT_HOOK_FORMAT=gemini \"$GEMINI_PROJECT_DIR\"/.agents/hooks/lint-file.sh",
-            "timeout": 60000
+            "name": "ruff",
+            "timeout": 60000,
+            "type": "command"
           }
-        ]
+        ],
+        "matcher": "^(write_file|replace)$"
       }
     ],
-    "AfterAgent": [
+    "BeforeTool": [
       {
         "hooks": [
           {
-            "name": "quality-gates",
-            "type": "command",
-            "command": "AGENT_HOOK_FORMAT=gemini \"$GEMINI_PROJECT_DIR\"/.agents/hooks/quality-gates.sh",
-            "timeout": 600000
+            "command": "AGENT_HOOK_FORMAT=gemini python3 \"$GEMINI_PROJECT_DIR\"/.agents/hooks/guard_bash.py",
+            "name": "guard-git",
+            "timeout": 30000,
+            "type": "command"
+          }
+        ],
+        "matcher": "^run_shell_command$"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "AGENT_HOOK_FORMAT=gemini \"$GEMINI_PROJECT_DIR\"/.agents/hooks/session-start.sh",
+            "name": "install",
+            "timeout": 300000,
+            "type": "command"
           }
         ]
       }
