@@ -60,7 +60,7 @@ release = ["python-semantic-release>=10.7.0,<11"]
 
 [tool.uv]
 # Same uv everywhere (CI pins this version in .github/actions/setup-uv).
-required-version = ">=0.11.32,<0.12"
+required-version = ">=0.13.9,<0.14"
 # `uv sync` / `uv run` install only `dev`; `build` and `release` are opt-in.
 default-groups = ["dev"]
 # Supply-chain cooldown, like Dependabot's: ignore releases younger than a week
@@ -208,7 +208,7 @@ show_missing = true
 
 
 [build-system]
-requires = ["uv_build>=0.11.32,<0.12"]
+requires = ["uv_build>=0.13.9,<0.14"]
 build-backend = "uv_build"
 
 
