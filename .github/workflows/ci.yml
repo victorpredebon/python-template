@@ -219,8 +219,13 @@ jobs:
   release:
     name: Release
     needs: [ci-ok, build]
+    # !cancelled() plus explicit results: without a status function, GitHub skips this
+    # job whenever any upstream job was skipped (dependency-review never runs on push),
+    # even though ci-ok itself succeeded.
     if: >-
-      github.event_name == 'push' && github.ref == 'refs/heads/main'
+      !cancelled()
+      && needs.ci-ok.result == 'success' && needs.build.result == 'success'
+      && github.event_name == 'push' && github.ref == 'refs/heads/main'
       && needs.build.outputs.released == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
