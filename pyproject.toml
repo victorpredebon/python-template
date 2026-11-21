@@ -181,8 +181,18 @@ files = ["src", "tests", ".claude/hooks"]
 strict = true
 
 
-[tool.pytest.ini_options]
+[tool.pytest]
 testpaths = ["tests"]
+# Unknown markers or config keys, unexpectedly passing xfails and duplicate
+# parametrize ids are errors instead of being silently ignored.
+strict = true
+# Warnings (deprecations included) fail the test that raised them; ignore a
+# specific one here, with the reason, only when it comes from a dependency.
+filterwarnings = ["error"]
+# importlib: tests never shadow each other or the installed package through
+# sys.path, so they run against the package as it is installed. -ra lists the
+# reason for every test that did not pass.
+addopts = ["--import-mode=importlib", "-ra"]
 
 
 [tool.coverage.run]

@@ -27,7 +27,7 @@ Scaffold production-ready Python projects in seconds. Clone, run `make install`,
 | 📦 **uv** | One fast tool for Python versions, virtualenvs and a cross-platform lockfile (`uv.lock`), with PEP 735 dependency groups, the `uv_build` backend and a 7-day cooldown on new releases (`exclude-newer`) |
 | ⚡ **Ruff** | Blazing-fast linter and formatter — replaces `flake8`, `isort`, and `black` in one tool |
 | 🔍 **MyPy** | Strict static type checking and type safety enforcement |
-| 🧪 **Pytest + pytest-cov** | Parallel test suite with branch coverage and an 80% minimum coverage gate |
+| 🧪 **Pytest + pytest-cov** | Parallel test suite in strict mode (unknown markers, unexpected passes and warnings are errors), with branch coverage and an 80% minimum coverage gate |
 | 🔒 **pre-commit** | Code quality hooks sourced from the project's own virtualenv — zero version drift |
 | 📐 **Commitizen** | Enforces [Conventional Commits](https://www.conventionalcommits.org) on every commit message |
 | 🛡️ **pip-audit** | Scans the locked environment for dependencies with known CVEs |

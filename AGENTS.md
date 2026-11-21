@@ -59,7 +59,8 @@ finish with changed code, and blocks skipping git hooks, force pushes and pushes
 - **Style:** Ruff with every rule enabled, single quotes, 88 columns. Let `make format` fix style.
 - **Types:** mypy strict. Every function is fully annotated; prefer precise types over `Any`.
 - **Tests:** every behavior change comes with tests. Coverage must stay ≥ 80% (branch coverage).
-  Prefer property-based tests (Hypothesis) for pure functions.
+  Prefer property-based tests (Hypothesis) for pure functions. pytest runs strict: register
+  new markers under `[tool.pytest]`, and fix warnings instead of filtering them.
 - **Architecture:** module dependencies follow the import-linter contracts in
   `pyproject.toml` (`calc` is pure logic; only `cli` does I/O). Add a contract when you add a layer.
 - **Patterns:** generic best practices live as ast-grep rules in `rules/` (tests, error
