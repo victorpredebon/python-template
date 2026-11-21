@@ -1,0 +1,11 @@
+id: no-sleep-in-tests
+language: python
+severity: error
+message: Don't sleep in tests.
+note: Sleeping makes tests slow and flaky. Inject a clock or fake the dependency.
+rule:
+  any:
+    - pattern: time.sleep($$$)
+    - pattern: sleep($$$)
+    - pattern: asyncio.sleep($$$)
+  matches: in-test

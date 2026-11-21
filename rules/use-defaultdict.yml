@@ -1,0 +1,14 @@
+id: use-defaultdict
+language: python
+severity: error
+message: Use collections.defaultdict (or dict.setdefault) instead of initializing missing keys by hand.
+note: >-
+  defaultdict(list) creates the empty container on first access, so grouping code
+  doesn't need the membership check and the extra lookups.
+rule:
+  pattern: |
+    if $K not in $D:
+        $D[$K] = $INIT
+constraints:
+  INIT:
+    regex: ^(\[\]|\{\}|set\(\)|list\(\)|dict\(\))$

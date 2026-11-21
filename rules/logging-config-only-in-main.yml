@@ -1,0 +1,17 @@
+id: logging-config-only-in-main
+language: python
+severity: error
+message: Configure logging only in the entry point (main or the __main__ guard).
+note: >-
+  Per the Python logging HOWTO, libraries must not configure logging; that is the
+  application's decision. Configuring it elsewhere overrides the caller's setup.
+rule:
+  any:
+    - pattern: basicConfig($$$)
+    - pattern: logging.basicConfig($$$)
+    - pattern: dictConfig($$$)
+    - pattern: logging.config.dictConfig($$$)
+    - pattern: fileConfig($$$)
+    - pattern: logging.config.fileConfig($$$)
+  not:
+    matches: in-entry-point

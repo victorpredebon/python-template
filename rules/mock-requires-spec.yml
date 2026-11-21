@@ -1,0 +1,31 @@
+id: mock-requires-spec
+language: python
+severity: error
+message: Create mocks with autospec=True or spec=...
+note: >-
+  A mock without a spec accepts any attribute and any call, so the test keeps passing
+  when the real API changes or is called wrongly (see "Autospeccing" in the
+  unittest.mock docs). Pass autospec=True / spec=..., or new=... to replace the object.
+rule:
+  any:
+    - pattern: patch($$$)
+    - pattern: mock.patch($$$)
+    - pattern: unittest.mock.patch($$$)
+    - pattern: patch.object($$$)
+    - pattern: mock.patch.object($$$)
+    - pattern: mocker.patch($$$)
+    - pattern: mocker.patch.object($$$)
+    - pattern: Mock($$$)
+    - pattern: MagicMock($$$)
+    - pattern: AsyncMock($$$)
+    - pattern: mock.Mock($$$)
+    - pattern: mock.MagicMock($$$)
+    - pattern: mock.AsyncMock($$$)
+  not:
+    has:
+      field: arguments
+      has:
+        kind: keyword_argument
+        has:
+          field: name
+          regex: ^(autospec|spec|spec_set|new|new_callable|wraps)$

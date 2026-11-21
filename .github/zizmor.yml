@@ -1,0 +1,6 @@
+# zizmor configuration — https://docs.zizmor.sh/configuration/
+rules:
+  # Suggests the new `$/` syntax for local actions; keep `./` until actionlint
+  # and other tooling support it.
+  self-repository:
+    disable: true

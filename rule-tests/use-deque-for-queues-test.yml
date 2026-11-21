@@ -1,0 +1,9 @@
+id: use-deque-for-queues
+valid:
+  - queue.popleft()
+  - queue.appendleft(item)
+  - stack.pop()
+  - items.insert(index, item)
+invalid:
+  - first = queue.pop(0)
+  - history.insert(0, event)

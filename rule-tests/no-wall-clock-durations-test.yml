@@ -1,0 +1,8 @@
+id: no-wall-clock-durations
+valid:
+  - elapsed = time.monotonic() - start
+  - elapsed = time.perf_counter() - start
+  - timestamp = time.time()
+invalid:
+  - elapsed = time.time() - start
+  - remaining = deadline - time.time()

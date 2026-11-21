@@ -1,0 +1,14 @@
+id: use-defaultdict
+valid:
+  - groups = defaultdict(list)
+  - groups.setdefault(key, []).append(value)
+  - |
+    if key not in cache:
+        cache[key] = compute(key)
+invalid:
+  - |
+    if key not in groups:
+        groups[key] = []
+  - |
+    if key not in seen:
+        seen[key] = set()

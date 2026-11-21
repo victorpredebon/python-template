@@ -1,0 +1,15 @@
+id: no-large-tuple-returns
+valid:
+  - |
+    def bounds(values: list[int]) -> tuple[int, int]:
+        return min(values), max(values)
+  - |
+    def stats(values: list[int]) -> Stats:
+        return Stats(count=len(values), total=sum(values), low=min(values), high=max(values))
+invalid:
+  - |
+    def stats(values: list[int]) -> tuple[int, int, int, int]:
+        return len(values), sum(values), min(values), max(values)
+  - |
+    def row() -> tuple[str, str, int, bool]:
+        return (name, email, age, active)

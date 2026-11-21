@@ -1,0 +1,14 @@
+id: use-counter
+language: python
+severity: error
+message: Use collections.Counter to count occurrences.
+note: >-
+  Counter(items) replaces the manual get-and-increment loop, and adds most_common(),
+  arithmetic between counts and clearer intent.
+rule:
+  any:
+    - pattern: $D[$K] = $D.get($K, 0) + 1
+    - pattern: $D[$K] = 1 + $D.get($K, 0)
+    - pattern: |
+        if $K not in $D:
+            $D[$K] = 0

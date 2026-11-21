@@ -1,0 +1,37 @@
+id: no-swallowed-exceptions
+language: python
+severity: error
+message: Exception is swallowed; handle it, re-raise it, or let it propagate.
+note: >-
+  "Errors should never pass silently" (PEP 20). An except block that only passes,
+  continues, logs or returns None hides failures from the caller. Top-level handlers in
+  the entry point (main or the __main__ guard) are allowed.
+rule:
+  kind: except_clause
+  not:
+    any:
+      - matches: in-entry-point
+      - has:
+          stopBy: end
+          kind: raise_statement
+  has:
+    kind: block
+    not:
+      has:
+        # A statement that actually handles the error.
+        not:
+          any:
+            - kind: comment
+            - kind: pass_statement
+            - kind: continue_statement
+            - pattern: return
+            - pattern: return None
+            - kind: expression_statement
+              has:
+                kind: call
+                has:
+                  field: function
+                  kind: attribute
+                  has:
+                    field: attribute
+                    regex: ^(debug|info|warning|warn|error|exception|critical|log)$

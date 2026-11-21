@@ -1,26 +1,67 @@
 [project]
 name = "python-template"
 version = "1.0.0"
-description = ""
+description = "A modern, opinionated Python boilerplate with linting, typing, testing and releases wired up."
 authors = [{ name = "Victor Predebon", email = "predebonvictor@gmail.com" }]
 readme = "README.md"
-requires-python = ">=3.14"
+license = "MIT"
+requires-python = ">=3.14,<4"
 dependencies = []
+keywords = ["template", "boilerplate", "poetry", "ruff", "mypy"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.14",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/victorpredebon/python-template"
+Repository = "https://github.com/victorpredebon/python-template"
+Issues = "https://github.com/victorpredebon/python-template/issues"
+Changelog = "https://github.com/victorpredebon/python-template/releases"
+
+[project.scripts]
+calculator = "calculator.cli:main"
 
 
-[tool.poetry.group.development.dependencies]
-ruff = "^0.17.5"
-pre-commit = "^4.7.0"
-mypy = "^2.4.1"
-pytest = "^9.0.2"
-pytest-asyncio = "^1.5.0"
-pytest-cov = "^7.1.0"
-pyupgrade = { version = "^3.22.0", python = ">=3.14,<4.0" }
-commitizen = { version = ">=4.19.3,<5.0", python = ">=3.14,<4.0" }
-pip-audit = { version = "^2.10.1", python = ">=3.14,<4.0" }
-deptry = { version = "^0.25.1", python = ">=3.14,<4.0" }
-pytest-xdist = { version = "^3.8.0", python = ">=3.14,<4.0" }
-python-semantic-release = { version = ">=10.7.0,<11.0", python = ">=3.14,<4.0" }
+[dependency-groups]
+dev = [
+  "ruff>=0.17.5,<0.18",
+  "pre-commit>=4.7.0,<5",
+  "mypy>=2.4.1,<3",
+  "pytest>=9.0.2,<10",
+  "pytest-cov>=7.1.0,<8",
+  "pytest-xdist>=3.8.0,<4",
+  "commitizen>=4.19.3,<5",
+  "pip-audit>=2.10.1,<3",
+  "deptry>=0.25.1,<0.26",
+  "hypothesis>=6",
+  "zizmor>=1",
+  "actionlint-py>=1.7",
+  "mutmut>=3",
+  "diff-cover>=9",
+  "import-linter>=2",
+  "vulture>=2",
+  "ast-grep-cli>=0.39",
+]
+# Packaging checks and SBOM: `poetry install --with build`
+build = ["twine>=6", "cyclonedx-bom>=7"]
+# Only needed by the CI release job: `poetry install --only release`
+release = ["python-semantic-release>=10.7.0,<11"]
+
+
+[tool.poetry]
+packages = [{ include = "calculator", from = "src" }]
+
+[tool.poetry.group.build]
+optional = true
+
+[tool.poetry.group.release]
+optional = true
 
 
 [tool.ruff]
@@ -32,6 +73,11 @@ fix = true
 
 [tool.ruff.lint]
 select = ["ALL"]
+# Opt into single preview rules by exact code only (explicit-preview-rules), so no
+# other preview rule turns on: PLR6201 = use a set literal for membership tests.
+preview = true
+explicit-preview-rules = true
+extend-select = ["PLR6201"]
 ignore = [
   "D",   # pydocstyle (D)
   "COM", # flake8-commas (COM)
@@ -42,6 +88,8 @@ fixable = ["ALL"]
 
 
 [tool.ruff.lint.per-file-ignores]
+# Standalone Claude Code hook scripts, run directly by path; not an importable package.
+".claude/hooks/*.py" = ["INP001"]
 "**/tests/**.py" = [
   "ANN",     # flake8-annotations (ANN)
   "PLR2004", # Magic value used in comparison
@@ -68,9 +116,8 @@ lines-after-imports = 2
 strict = true
 
 
-[tool.commitizen]
-version_scheme = "semver"
-tag_format = "v$version"
+# Commitizen is only used to validate commit messages (commit-msg hook).
+# Versioning and changelog are owned by python-semantic-release.
 
 
 [tool.semantic_release]
@@ -79,24 +126,74 @@ branch = "main"
 changelog_file = "CHANGELOG.md"
 
 
+[tool.deptry]
+known_first_party = ["calculator"]
+
+[tool.deptry.package_module_name_map]
+python-semantic-release = "semantic_release"
+cyclonedx-bom = "cyclonedx_py"
+
+
+# Architecture contracts: `lint-imports`. Add a contract when you add a layer.
+[tool.importlinter]
+root_package = "calculator"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "The CLI sits on top of the core logic, never the other way around"
+type = "layers"
+layers = ["calculator.cli", "calculator.calc"]
+
+[[tool.importlinter.contracts]]
+name = "Core logic is pure: no I/O, logging or process control"
+type = "forbidden"
+source_modules = ["calculator.calc"]
+forbidden_modules = ["logging", "os", "sys", "subprocess", "pathlib", "socket"]
+
+
+# Dead code: functions, classes and attributes nothing uses.
+[tool.vulture]
+paths = ["."]
+exclude = [".venv/", "mutants/", "build/", "dist/", ".git/"]
+
+
+# Duplicated code (copy-paste, also within one file): jscpd, configured in .jscpd.json.
+
+
+# New or changed lines must be fully covered: `make diff-cover` (after `make coverage`).
+[tool.diff_cover]
+compare_branch = "origin/main"
+fail_under = 100
+
+
 [tool.mypy]
-mypy_path = "."
+mypy_path = "src"
+files = ["src", "tests", ".claude/hooks"]
 strict = true
 
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
-asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
 
 [tool.coverage.run]
 branch = true
-source = ["calculator"]
-omit = ["**/tests/**"]
+source_pkgs = ["calculator"]
 
-[tool.poetry]
-package-mode = false
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+# Mutation testing: `make mutation`. Changes the code in small ways and checks
+# that some test fails; a surviving mutant is behavior no test really checks.
+[tool.mutmut]
+source_paths = ["src/"]
+pytest_add_cli_args_test_selection = ["tests/"]
+pytest_add_cli_args = ["-p", "no:xdist"]
+also_copy = [".claude/hooks/"]

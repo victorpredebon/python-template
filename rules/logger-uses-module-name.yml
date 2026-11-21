@@ -1,0 +1,15 @@
+id: logger-uses-module-name
+language: python
+severity: error
+message: Create loggers with getLogger(__name__).
+note: >-
+  Recommended by the Python logging HOWTO: module-named loggers form a hierarchy that
+  can be configured per package and show where a record came from.
+rule:
+  any:
+    - pattern: getLogger($$$ARGS)
+    - pattern: logging.getLogger($$$ARGS)
+  not:
+    any:
+      - pattern: getLogger(__name__)
+      - pattern: logging.getLogger(__name__)

@@ -1,0 +1,17 @@
+id: exit-only-in-main
+language: python
+severity: error
+message: Only the entry point (main or the __main__ guard) may exit the process.
+note: >-
+  Code below the entry point should raise an exception and let the caller decide;
+  exiting makes it impossible to reuse or test.
+rule:
+  any:
+    - pattern: sys.exit($$$)
+    - pattern: exit($$$)
+    - pattern: quit($$$)
+    - pattern: os._exit($$$)
+    - pattern: raise SystemExit($$$)
+    - pattern: raise SystemExit
+  not:
+    matches: in-entry-point

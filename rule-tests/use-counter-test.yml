@@ -1,0 +1,10 @@
+id: use-counter
+valid:
+  - counts = Counter(words)
+  - counts[word] += 1
+  - totals[key] = totals.get(key, 0) + amount
+invalid:
+  - counts[word] = counts.get(word, 0) + 1
+  - |
+    if word not in counts:
+        counts[word] = 0

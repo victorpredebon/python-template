@@ -1,0 +1,15 @@
+id: logging-config-only-in-main
+valid:
+  - |
+    def main() -> None:
+        logging.basicConfig(level='INFO')
+  - |
+    if __name__ == '__main__':
+        basicConfig(level='INFO')
+  - logger.info('hello')
+invalid:
+  - |
+    def compute() -> int:
+        logging.basicConfig(level='INFO')
+        return 1
+  - logging.config.dictConfig(CONFIG)

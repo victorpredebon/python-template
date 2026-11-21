@@ -1,0 +1,15 @@
+# Inside the program's entry point: a `main` function or the `__main__` guard.
+id: in-entry-point
+language: python
+rule:
+  inside:
+    stopBy: end
+    any:
+      - kind: function_definition
+        has:
+          field: name
+          regex: ^main$
+      - kind: if_statement
+        has:
+          field: condition
+          regex: __name__\s*==\s*['"]__main__['"]

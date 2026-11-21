@@ -1,0 +1,20 @@
+id: no-untyped-dict-in-signatures
+language: python
+severity: error
+message: Use a TypedDict or dataclass instead of dict[str, Any] in signatures.
+note: >-
+  dict[str, Any] hides which keys exist and what they hold, so the type checker can't
+  catch typos or wrong values. Describe the shape with TypedDict (for dict data) or a
+  dataclass. Ruff's ANN401 only flags a bare Any.
+rule:
+  kind: generic_type
+  regex: ^(dict|Dict|Mapping|MutableMapping)\[\s*str\s*,\s*(Any|object)\s*\]$
+  # Only parameter and return annotations, not variables inside the body.
+  inside:
+    stopBy: end
+    kind: type
+    inside:
+      any:
+        - kind: function_definition
+        - kind: typed_parameter
+        - kind: typed_default_parameter

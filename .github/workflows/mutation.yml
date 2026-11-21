@@ -1,0 +1,44 @@
+name: Mutation testing
+
+# Coverage says a line ran; mutation testing says a test would notice if it were
+# wrong. Runs on PRs that touch code or tests, weekly and on demand.
+on:
+  pull_request:
+    branches: [main]
+    paths: ["src/**", "tests/**", "pyproject.toml", "poetry.lock"]
+  schedule:
+    - cron: "37 3 * * 6"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  mutmut:
+    name: Mutation testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-poetry
+
+      - name: Run mutation testing
+        run: make mutation
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '### Mutation testing'
+            echo '```json'
+            cat mutants/mutmut-cicd-stats.json 2>/dev/null || echo '{}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

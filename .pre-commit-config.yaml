@@ -1,3 +1,8 @@
+# `make setup-pre-commit` (or plain `pre-commit install`) installs these git hooks.
+default_install_hook_types: [pre-push, commit-msg]
+# Hooks run on `git push` and on `pre-commit run` (the default stage, used by CI).
+default_stages: [pre-commit, pre-push, manual]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -7,19 +12,22 @@ repos:
       - id: pretty-format-json
         args: [--autofix]
       - id: check-toml
-      - id: sort-simple-yaml
       - id: check-yaml
       - id: check-json
       - id: check-illegal-windows-names
       - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: detect-private-key
       - id: name-tests-test
         args: [--pytest-test-first]
   - repo: local
     hooks:
-      - id: pyupgrade
-        name: pyupgrade
-        entry: poetry run pyupgrade --py314-plus
-        language: system
+      # Never allowed, not even with approval: fix the code, or fix the rule in its own PR.
+      - id: no-suppressions
+        name: no suppression comments (noqa, type ignore, ast-grep-ignore, no cover)
+        language: pygrep
+        entry: '#.*\b(noqa|type:\s*ignore|pyright:\s*ignore|mypy:\s*ignore-errors|ast-grep-ignore|pragma:\s*no\s*cover)'
         types: [python]
       - id: ruff
         name: ruff
@@ -33,9 +41,55 @@ repos:
         types: [python]
       - id: mypy
         name: mypy
-        entry: poetry run mypy --explicit-package-bases
+        # Checks the whole project (paths in [tool.mypy] files) so cross-module
+        # errors are not missed when only some files changed.
+        entry: poetry run mypy
         language: system
         types: [python]
+        pass_filenames: false
+      - id: import-linter
+        name: import-linter (architecture contracts)
+        entry: poetry run lint-imports
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: vulture
+        name: vulture (dead code)
+        entry: poetry run vulture
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: ast-grep
+        name: ast-grep (project patterns in rules/)
+        entry: poetry run ast-grep scan
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: ast-grep-test
+        name: ast-grep rule tests
+        entry: poetry run ast-grep test --skip-snapshot-tests
+        language: system
+        files: ^(rules/|rule-tests/|sgconfig\.yml$)
+        pass_filenames: false
+      - id: jscpd
+        name: jscpd (duplicated code)
+        entry: jscpd --exit-code 1
+        language: node
+        additional_dependencies: ["jscpd@5.4.1"]
+        types: [python]
+        pass_filenames: false
+      - id: actionlint
+        name: actionlint
+        entry: poetry run actionlint
+        language: system
+        files: ^\.github/workflows/
+        pass_filenames: false
+      - id: zizmor
+        name: zizmor (GitHub Actions security)
+        entry: poetry run zizmor --offline --min-severity low .github
+        language: system
+        files: ^\.github/
+        pass_filenames: false
       - id: commitizen
         name: commitizen
         entry: poetry run cz check --commit-msg-file
@@ -43,7 +97,7 @@ repos:
         stages: [commit-msg]
       - id: pip-audit
         name: pip-audit
-        entry: poetry run pip-audit
+        entry: poetry run pip-audit --skip-editable
         language: system
         pass_filenames: false
         stages: [manual]

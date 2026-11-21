@@ -1,0 +1,13 @@
+# Default reviewers for every change. Update after creating a project from this template.
+# Enable "Require review from Code Owners" in the branch ruleset so these apply.
+* @victorpredebon
+
+# Security-sensitive paths: CI/CD, release, dependencies and agent instructions.
+# Keep them explicit so they stay protected if the default owner above changes.
+/.github/                 @victorpredebon
+/pyproject.toml           @victorpredebon
+/poetry.lock              @victorpredebon
+/.pre-commit-config.yaml  @victorpredebon
+/.claude/                 @victorpredebon
+/AGENTS.md                @victorpredebon
+/CLAUDE.md                @victorpredebon

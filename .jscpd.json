@@ -1,0 +1,20 @@
+{
+  "absolute": false,
+  "format": [
+    "python"
+  ],
+  "gitignore": true,
+  "ignore": [
+    "**/mutants/**",
+    "**/.venv/**"
+  ],
+  "minLines": 5,
+  "minTokens": 40,
+  "path": [
+    "."
+  ],
+  "reporters": [
+    "console"
+  ],
+  "threshold": 0
+}
